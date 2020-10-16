@@ -38,9 +38,11 @@ def get_right_vec_v(u: np.array, v: np.array, p: float, q: float, t: float) -> n
     return v + t * p * v * (u - (1 + q) / (q + v))
 
 
+@jit(nopython=True, parallel=True)
 def integrate(dt: float, dx: float, p: float, q: float, D_u: float, D_v: float, steps: int,
               init_u: np.array, init_v: np.array, save_timeline: bool = False, timeline_save_step: int = 10_000):
-    assert init_u.shape == init_v.shape
+
+    assert init_u.shape == init_v.shape, f'shape mismatch: init_u.shape is {init_u.shape}, init_v.shape = {init_v.shape}'
 
     diags_u = get_diags(dt, dx, D_u, init_u.shape[0])
     U_u_d = diags_u['upper']
