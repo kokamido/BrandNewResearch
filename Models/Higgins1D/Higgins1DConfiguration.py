@@ -1,8 +1,4 @@
-from typing import Dict, Union
-
 from nptyping import NDArray
-
-from PythonHeplers.DictHelpers import assert_if_not_present
 
 
 class Higgins1DConfiguration:
@@ -12,14 +8,15 @@ class Higgins1DConfiguration:
         assert q > 0
         assert Du > 0
         assert Dv > 0
-        self.parameters = {'p': p, 'q': q, 'Du': Du, 'Dv': Dv}
+        self.parameters = {'p': p, 'q': q, 'Du': Du, 'Dv': Dv, 'model': 'Higgins'}
 
     def __str__(self):
         return f'{self.parameters}'
 
 
 class Higgins1DTdmaParameters:
-    def __init__(self, u_init: NDArray, v_init: NDArray, dx: float, dt:float, t_max:float, save_timeline: bool = False,
+    def __init__(self, u_init: NDArray, v_init: NDArray, dx: float, dt: float, t_max: float,
+                 save_timeline: bool = False,
                  timeline_save_step_delta: int = 10_000):
         assert u_init.shape == v_init.shape
         assert dx > 0
@@ -31,4 +28,3 @@ class Higgins1DTdmaParameters:
 
     def __str__(self):
         return f'{self.parameters}'
-

@@ -1,5 +1,3 @@
-from datetime import datetime
-from os import path, mkdir
 from typing import Dict
 
 import numpy as np
@@ -7,12 +5,12 @@ from nptyping import NDArray
 from numba import jit
 
 from Logging.logger import log
+from DataContainers.Experiment import Experiment
 from MathHelpers.AlgebraicLinearSystemsSolvers import __tdma
 from Models.Higgins1D.Higgins1DConfiguration import Higgins1DConfiguration, Higgins1DTdmaParameters
 
 
-def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Higgins1DTdmaParameters,
-                                   dump_path: str = None):
+def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Higgins1DTdmaParameters) -> Experiment:
     """
     Args:
         dump_path: if not None, data will be stored on disk
@@ -25,6 +23,7 @@ def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Hig
     """
     parameters = config.parameters
     settings = settings.parameters
+    settings['method'] = 'tdma_implicit'
     u_init = settings['u_init']
     del settings['u_init']
     v_init = settings['v_init']
@@ -41,21 +40,8 @@ def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Hig
         log.error('Higgins1d evaluation failed')
         raise ArithmeticError('Higgins1d evaluation failed')
     log.info('Higgins1d evaluation  successfully finished')
-    res = {'u': u, 'v': v, 'u_timeline': np.vstack(u_timeline), 'v_timeline': np.vstack(v_timeline)}
-    if dump_path:
-        if not path.exists(dump_path):
-            mkdir(dump_path)
-        path_to_save = path.join(dump_path, f'{config} {str(datetime.now()).split(".")[0]}'.replace(':', '_'))
-        mkdir(path.join(path_to_save))
-        with open(path.join(path_to_save, 'config'), 'w') as out:
-            out.write(str(config))
-        with open(path.join(path_to_save, 'parameters'), 'w') as out:
-            settings['method'] = 'tdma_implicit'
-            out.write(str(settings))
-        for key in res:
-            if res[key] is not None:
-                np.savetxt(path.join(path_to_save, f'res_{key}'), res[key],
-                           fmt='%f6', delimiter=' ', newline='\n', header='', footer='', comments='# ')
+    res = Experiment()
+    res.fill(parameters, settings, {'u': u_init, 'v': v_init}, {'u': u, 'v': v}, {'u': np.vstack(u_timeline),'v': np.vstack(v_timeline)})
     return res
 
 
