@@ -14,7 +14,7 @@ def get_cos(picks: float, points_count: int, shift: float, amplitude: float) -> 
     Returns
         NDArray[np.float64] array of points
     """
-    assert picks % 0.5 > 0.01, f"\'picks\' should be integer or half-integer positive number, given value '{picks}'"
+    assert (picks % 0.5) < 0.01, f"\'picks\' should be integer or half-integer positive number, given value '{picks}'"
     return np.cos(np.linspace(0, picks * 2 * np.pi, points_count, dtype=np.float64)) * amplitude + shift
 
 
