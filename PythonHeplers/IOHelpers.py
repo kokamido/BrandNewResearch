@@ -1,6 +1,6 @@
 import json
-from os import path
-from typing import Dict, Any
+from os import path, walk
+from typing import Dict, Any, Callable, Generator, Union
 
 from nptyping import NDArray
 from numpy import ndarray
@@ -13,7 +13,7 @@ def append_or_create(path_to_file: str, data: str) -> None:
         out.write(data)
 
 
-def to_json_np_aware(data: Dict[str, NDArray]) -> str:
+def to_json_np_aware(data: Dict[str, Union[NDArray,ndarray]]) -> str:
     if not data:
         return ''
     res = {}
@@ -34,3 +34,9 @@ def load_python_array(path_to_file: str) -> Dict[str, Any]:
     assert path.exists(path_to_file)
     with open(path_to_file, 'r', encoding='utf-8') as inp:
         return json.loads(inp.readline().replace('\'', '"').lower())
+
+
+def do_with_all_subfolders(parent_folder: str, function: Callable[[str], Any]) -> Generator[Any, None, None]:
+    assert path.exists(parent_folder)
+    for directory in list(walk(parent_folder))[0][1]:
+        yield function(path.join(parent_folder, directory))

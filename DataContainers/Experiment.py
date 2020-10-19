@@ -1,7 +1,7 @@
 from numpy import ndarray, array, loadtxt
 
 from os import path, mkdir
-from typing import Dict, Any
+from typing import TypeVar, Dict, Any
 
 from nptyping import NDArray
 
@@ -15,10 +15,11 @@ class Experiment:
     init_values = None
     end_values = None
     timelines = None
+    Experiment = TypeVar('Experiment')
 
     def fill(self, model_config: Dict[str, float], method_parameters: Dict[str, Any],
              init_values: Dict[str, NDArray], end_values: Dict[str, NDArray],
-             timelines: Dict[str, ndarray] = None) -> None:
+             timelines: Dict[str, ndarray] = None) -> Experiment:
         assert model_config
         assert method_parameters
         assert len(init_values) == len(end_values)
@@ -33,8 +34,9 @@ class Experiment:
         self.init_values = init_values
         self.end_values = end_values
         self.timelines = timelines
+        return self
 
-    def fill_from_file(self, path_to_file: str) -> None:
+    def fill_from_file(self, path_to_file: str, load_timelines: bool = False) -> Experiment:
         assert path.exists(path_to_file)
         self.model_config = load_json(path.join(path_to_file, 'model_config'))
         self.method_parameters = load_json(path.join(path_to_file, 'method_parameters'))
@@ -48,12 +50,13 @@ class Experiment:
             self.end_values[key] = array(self.end_values[key])
 
         path_to_timelines = path.join(path_to_file, 'timelines')
-        if path.exists(path_to_timelines):
+        if load_timelines and path.exists(path_to_timelines):
             self.timelines = load_json(path_to_timelines)
             for key in self.timelines:
                 self.timelines[key] = array(self.timelines[key])
+        return self
 
-    def fill_from_file_Higgins_legacy_format(self, path_to_file: str) -> None:
+    def fill_from_file_Higgins_legacy_format(self, path_to_file: str, load_timelines: bool = False) -> Experiment:
         assert path.exists(path_to_file)
         self.model_config = load_python_array(path.join(path_to_file, 'config'))
         self.method_parameters = load_python_array(path.join(path_to_file, 'parameters'))
@@ -66,9 +69,10 @@ class Experiment:
         path_to_timeline_u = path.join(path_to_file, 'res_u_timeline')
         path_to_timeline_v = path.join(path_to_file, 'res_v_timeline')
 
-        if path.exists(path_to_timeline_u) and path.exists(path_to_timeline_v):
+        if load_timelines and path.exists(path_to_timeline_u) and path.exists(path_to_timeline_v):
             self.timelines = {'u': loadtxt(path_to_timeline_u),
                               'v': loadtxt(path_to_timeline_v)}
+        return self
 
     def save(self, path_to_save: str) -> None:
         if not path.exists(path_to_save):

@@ -1,6 +1,7 @@
-from typing import Dict, Any
+from typing import Dict, Any, Union
 
 from nptyping import NDArray
+from numpy import ndarray
 
 from Logging.logger import log
 
@@ -15,7 +16,7 @@ def assert_if_not_present(key: str, dict_to_check: Dict[str, Any]) -> None:
         raise e
 
 
-def check_shapes_equality(data: Dict[str, NDArray]) -> None:
+def check_shapes_equality(data: Dict[str, Union[ndarray, NDArray]]) -> None:
     if not data:
         return
     shape = None
