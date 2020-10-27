@@ -10,7 +10,7 @@ def calc_picks(points: NDArray[np.float64], min_amplitude: float = 0.0001) -> Di
     Returns 0 picks if amplitude in array < min_amplitude
     """
     if np.max(points) - np.min(points) < min_amplitude:
-        return {'picks': 0, 'direction': None}
+        return {'picks': None, 'direction': None}
     derivative_sign = 1 if points[2] - points[1] >= 0 else -1
     half_picks = 0
     for i in range(2, len(points) - 3):

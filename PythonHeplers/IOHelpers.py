@@ -1,6 +1,6 @@
 import json
 from os import path, walk
-from typing import Dict, Any, Callable, Generator, Union
+from typing import Dict, Any, Callable, List, Union
 
 from nptyping import NDArray
 from numpy import ndarray
@@ -36,7 +36,9 @@ def load_python_array(path_to_file: str) -> Dict[str, Any]:
         return json.loads(inp.readline().replace('\'', '"').lower())
 
 
-def do_with_all_subfolders(parent_folder: str, function: Callable[[str], Any]) -> Generator[Any, None, None]:
+def do_with_all_subfolders(parent_folder: str, function: Callable[[str], Any]) -> List[Any]:
     assert path.exists(parent_folder)
+    res = []
     for directory in list(walk(parent_folder))[0][1]:
-        yield function(path.join(parent_folder, directory))
+        res.append(function(path.join(parent_folder, directory)))
+    return res

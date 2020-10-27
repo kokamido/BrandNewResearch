@@ -1,6 +1,4 @@
-from matplotlib import pyplot as plt
 from matplotlib import axes, rcParams
-from nptyping import NDArray
 from numpy import arange
 
 

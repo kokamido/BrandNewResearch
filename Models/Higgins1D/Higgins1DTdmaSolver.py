@@ -112,6 +112,8 @@ def __integrate_tdma_implicit(dt: float, dx: float, steps: int, p: float, q: flo
                 return None, None, None, None
             if np.linalg.norm(u - u_new) < 0.000000001:
                 break
+            if np.linalg.norm(u) < 0.000000001:
+                break
 
         if save_timeline and i % timeline_save_step == 0:
             u_timeline.append(u_new)

@@ -76,7 +76,7 @@ class Experiment:
 
     def save(self, path_to_save: str) -> None:
         if not path.exists(path_to_save):
-            mkdir(path_to_save,parents=True)
+            mkdir(path_to_save)
         append_or_create(path.join(path_to_save, 'model_config'), to_json_np_aware(self.model_config))
         append_or_create(path.join(path_to_save, 'method_parameters'), to_json_np_aware(self.method_parameters))
         append_or_create(path.join(path_to_save, 'init_values'), to_json_np_aware(self.init_values))
