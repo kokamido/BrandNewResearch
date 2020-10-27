@@ -4,12 +4,9 @@ from logging.handlers import TimedRotatingFileHandler
 
 
 def setup_custom_logger(name):
-    formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-    logger = logging.getLogger(name)
+    #logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', handlers=[TimedRotatingFileHandler(name, when="midnight", interval=1)])
+    logger = logging.getLogger('sas')
     logger.setLevel(logging.INFO)
-    handler = TimedRotatingFileHandler(name, when="midnight", interval=1)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
     return logger
 
 
