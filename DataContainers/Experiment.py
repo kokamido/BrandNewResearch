@@ -1,6 +1,6 @@
 from numpy import ndarray, array, loadtxt
 
-from os import path, mkdir
+from os import path, makedirs
 from typing import TypeVar, Dict, Any
 
 from nptyping import NDArray
@@ -10,11 +10,6 @@ from PythonHeplers.IOHelpers import append_or_create, to_json_np_aware, load_jso
 
 
 class Experiment:
-    model_config = None
-    method_parameters = None
-    init_values = None
-    end_values = None
-    timelines = None
     Experiment = TypeVar('Experiment')
 
     def fill(self, model_config: Dict[str, float], method_parameters: Dict[str, Any],
@@ -34,6 +29,7 @@ class Experiment:
         self.init_values = init_values
         self.end_values = end_values
         self.timelines = timelines
+        self.metadata = {}
         return self
 
     def fill_from_file(self, path_to_file: str, load_timelines: bool = False) -> Experiment:
@@ -54,6 +50,7 @@ class Experiment:
             self.timelines = load_json(path_to_timelines)
             for key in self.timelines:
                 self.timelines[key] = array(self.timelines[key])
+        self.metadata = {}
         return self
 
     def fill_from_file_Higgins_legacy_format(self, path_to_file: str, load_timelines: bool = False) -> Experiment:
@@ -72,11 +69,12 @@ class Experiment:
         if load_timelines and path.exists(path_to_timeline_u) and path.exists(path_to_timeline_v):
             self.timelines = {'u': loadtxt(path_to_timeline_u),
                               'v': loadtxt(path_to_timeline_v)}
+        self.metadata = {}
         return self
 
     def save(self, path_to_save: str) -> None:
         if not path.exists(path_to_save):
-            mkdir(path_to_save)
+            makedirs(path_to_save)
         append_or_create(path.join(path_to_save, 'model_config'), to_json_np_aware(self.model_config))
         append_or_create(path.join(path_to_save, 'method_parameters'), to_json_np_aware(self.method_parameters))
         append_or_create(path.join(path_to_save, 'init_values'), to_json_np_aware(self.init_values))
