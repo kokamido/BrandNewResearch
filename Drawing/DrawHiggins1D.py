@@ -1,6 +1,7 @@
 from typing import List, Union
 
 import pylab as plt
+from matplotlib import axes
 from matplotlib.lines import Line2D
 from numpy import linspace, ndarray
 from seaborn import heatmap, color_palette
@@ -12,7 +13,7 @@ from Drawing.DrawHelper import set_xticks, set_yticks
 
 
 def draw_amps_stat(results: List[Experiment], L_min: float, L_max: float, xticks: Union[List[float], ndarray] = None,
-                   x_name: str = None, yticks: Union[List[float], ndarray] = None, y_name: str = None) -> None:
+                   x_name: str = None, yticks: Union[List[float], ndarray] = None, y_name: str = None, logscale: bool = False) -> None:
     for r in results:
         assert r.model_config['model'] == 'Higgins'
         r.method_parameters['x_max'] = r.method_parameters['dx'] * len(r.init_values['u'])
@@ -35,6 +36,9 @@ def draw_amps_stat(results: List[Experiment], L_min: float, L_max: float, xticks
     ax.legend(handles=legend_elements, loc='center right')
     ax.set_title(f'Амплитуды итоговых паттернов для u(x) и v(+) для значений L от {L_min} до {L_max}.')
 
+    if logscale:
+        ax.set_yscale('log')
+
     if xticks is None:
         xticks = linspace(L_min, L_max, 5)
     set_xticks(ax, xticks, '$L$' if x_name is None else x_name)
@@ -45,46 +49,52 @@ def draw_amps_stat(results: List[Experiment], L_min: float, L_max: float, xticks
     plt.show()
 
 
-def draw_transient(e: Experiment, left_boder: float = None, right_border: float = None,
+def draw_transient(e: Experiment, left_border: float = None, right_border: float = None,
                    xticks: Union[List[float], ndarray] = None,
                    yticks: Union[List[float], ndarray] = None,
-                   draw_u_only: bool = True) -> None:
+                   draw_u_only: bool = True, cmap: str = 'nipy_spectral_r', ax: axes = None) -> axes:
     assert e.timelines
     assert e.timelines['u'].shape == e.timelines['v'].shape
     assert e.method_parameters['dt']
 
-    if left_boder is None:
-        left_boder = 0
-    assert left_boder >= 0
+    print(e.method_parameters)
+    dt = e.method_parameters['dt']*e.method_parameters['timeline_save_step_delta']
+    time_step_max = e.timelines['u'].shape[0] - 1
+    
+    if left_border is None or left_border < 0:
+        left_border = 0
+    if right_border is None or right_border > time_step_max*dt:
+        right_border = time_step_max*dt
+    
+    time_range = (right_border - left_border)
+    left_border = int(left_border/dt)
+    right_border = int(right_border/dt)
 
-    if right_border is None:
-        right_border = e.timelines['u'].shape[0] - 1
-    assert right_border <= e.timelines['u'].shape[0] - 1
-
-    draw_transient_internal(e.timelines['u'].T[::-1, left_boder:right_border], e.method_parameters['dt'],'$t$', '$U$', xticks, yticks)
-    if not draw_u_only:
-        draw_transient_internal(e.timelines['v'].T[::-1, left_boder:right_border], e.method_parameters['dt'], '$t$', '$V$', xticks, yticks)
-
-
-def draw_transient_internal(data: ndarray, dt: float, x_name: str, y_name: str,
-                            xticks: Union[List[float], ndarray] = None,
-                            yticks: Union[List[float], ndarray] = None) -> None:
-    ax = heatmap(data)
     if xticks is None:
-        quant = 100 if data.shape[1] < 1500 else 500
-        r_border = data.shape[1] - data.shape[1] % quant
-        xticks = [round(i) for i in linspace(0, r_border, r_border // quant + 1)]
-    if data.shape[1] - xticks[-1] > 50:
-        xticks += [data.shape[1]]
-    set_xticks(ax, xticks, x_name, ticklabels=[x * dt for x in xticks])
+        quant = max(int(time_range / dt // 6),1)
+        xticklabels = [i for i in linspace(left_border, right_border, (right_border - left_border) // quant)]
 
     if yticks is None:
-        yticks = [round(i, 3) for i in linspace(0, data.shape[0], 5)]
-    ticklabels = [str(i) for i in yticks[::-1]]
-    ticklabels[0] = y_name
-    set_yticks(ax, yticks, ticklabels=ticklabels)
-    plt.show()
+        ytickslabels = [round(i, 3) for i in linspace(0,e.timelines['u'].shape[1], 5)]
 
+    ax = draw_transient_internal(e.timelines['u'].T[::-1, left_border:right_border],dt,'$t$', '$U$', cmap, xticklabels, ytickslabels, ax)
+    if not draw_u_only:
+        ax = draw_transient_internal(e.timelines['v'].T[::-1, left_border:right_border], dt, '$t$', '$V$', cmap, xticklabels, ytickslabels,ax)
+    return ax
+
+
+def draw_transient_internal(data: ndarray, dt: float, x_name: str, y_name: str,cmap:str,
+                            xticklabels: Union[List[float], ndarray], yticklabels: Union[List[float], ndarray], ax: axes) -> axes:
+    ax = heatmap(data, cmap=cmap,ax = ax)
+    if data.shape[1] - xticklabels[-1] > 50:
+        xticklabels += [data.shape[1]]
+    x_min = min(xticklabels)
+    y_min = min(yticklabels)
+    set_xticks(ax, [x - x_min for x in xticklabels], x_name, ticklabels=[round(x * dt) for x in xticklabels])
+    ticklabels = [str(i) for i in yticklabels[::-1]]
+    ticklabels[0] = y_name
+    set_yticks(ax, [y - y_min for y in yticklabels], ticklabels=ticklabels)
+    return ax
 
 def draw_timeline_deltas(e: Experiment, left_border=None, right_border=None) -> None:
     assert e.method_parameters['dt']
@@ -96,7 +106,7 @@ def draw_timeline_deltas(e: Experiment, left_border=None, right_border=None) -> 
         right_border = len(deltas['u'])
     ax = plt.gca()
     for k in deltas:
-        ax.plot(linspace(0, right_border, right_border) * e.method_parameters['dt'], deltas[k][left_border:right_border], label=k)
+        ax.plot(linspace(0, right_border, right_border - left_border) * e.method_parameters['dt'], deltas[k][left_border:right_border], label=k)
     set_xticks(ax, [round(i, 2) for i in ax.get_xticks()[1:-1]],'$t$')
     ax.set_yscale('log')
     plt.title('Норма разности между смежными состояниями системы')
