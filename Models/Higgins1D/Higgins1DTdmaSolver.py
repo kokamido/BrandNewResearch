@@ -35,7 +35,8 @@ def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Hig
                                                              parameters['Du'], parameters['Dv'],
                                                              u_init, v_init,
                                                              settings['save_timeline'],
-                                                             settings['timeline_save_step_delta'])
+                                                             settings['timeline_save_step_delta'],
+                                                             settings['min_t'], settings['noise_amp'])
     if u is None:
         log.error('Higgins1d evaluation failed')
         raise ArithmeticError('Higgins1d evaluation failed')
@@ -78,8 +79,8 @@ def __get_right_vec_v_implicit(u: np.array, v: np.array, p: float, q: float, t: 
 
 @jit(nopython=True, parallel=True)
 def __integrate_tdma_implicit(dt: float, dx: float, steps: int, p: float, q: float, D_u: float, D_v: float,
-                              init_u: np.array,
-                              init_v: np.array, save_timeline: bool = False, timeline_save_step: int = 10_000):
+                              init_u: np.array, init_v: np.array, save_timeline: bool = False, 
+                              timeline_save_step: int = 10_000, min_t: int = None, noise_amp: float = None):
     """
     :returns: Tuple
         - u - is final U state;
@@ -106,11 +107,15 @@ def __integrate_tdma_implicit(dt: float, dx: float, steps: int, p: float, q: flo
                        U_l_d.copy(), __get_right_vec_u_implicit(u, v, dt))
         v_new = __tdma(V_u_d.copy(), V_m_d.copy(), V_l_d.copy(),
                        __get_right_vec_v_implicit(u, v, p, q, dt))
+        
+        if noise_amp:
+            u_new += np.random.random(u_new.shape) * noise_amp
+            v_new += np.random.random(v_new.shape) * noise_amp
 
-        if i % 5000 == 0:
+        if i % 5000 == 4999:
             if not np.isfinite(u_new).all():
                 return None, None, None, None
-            if np.linalg.norm(u - u_new) < 0.000000001:
+            if (min_t is None or i*dt > min_t) and np.linalg.norm(u - u_new) < 0.000000001:
                 break
             if np.linalg.norm(u) < 0.000000001:
                 break

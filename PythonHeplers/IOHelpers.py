@@ -3,7 +3,9 @@ from os import path, walk
 from typing import Dict, Any, Callable, List, Union
 
 from nptyping import NDArray
+import numpy as np
 from numpy import ndarray
+import datetime
 
 
 def append_or_create(path_to_file: str, data: str) -> None:
@@ -13,15 +15,21 @@ def append_or_create(path_to_file: str, data: str) -> None:
         out.write(data)
 
 
-def to_json_np_aware(data: Dict[str, Union[NDArray,ndarray]]) -> str:
+def myconverter(obj):
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, datetime.datetime):
+        return obj.__str__()
+
+
+def to_json_np_aware(data: Dict[str, Union[NDArray,ndarray]], float_precision: int = 6) -> str:
     if not data:
         return ''
-    res = {}
-    for key in data:
-        res[key] = data[key]
-        if isinstance(res[key], ndarray):
-            res[key] = res[key].tolist()
-    return json.dumps(res)
+    return json.dumps(data, default=myconverter, indent=2)
 
 
 def load_json(path_to_file: str) -> Dict[str, Any]:

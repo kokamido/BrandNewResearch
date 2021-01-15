@@ -3,7 +3,20 @@ from typing import Dict, Union
 import numpy as np
 from nptyping import NDArray
 
+from scipy.integrate import simps
 from DataContainers.Experiment import Experiment
+
+
+def calc_Fourier_coeff_for_pattern(points: NDArray[np.float], dx: float, coeff: float) -> float:
+    xs = np.linspace(0, points.shape[0] - 1, points.shape[0]) * dx
+    x_max = (points.shape[0] - 1) * dx
+    cos_mul = np.cos(2 * np.pi * coeff * xs / x_max)
+    return simps(points*cos_mul, xs)
+
+def calc_Fourier_coeff_for_transient(trans: NDArray[np.float], dx: float, coeff: float, right_border_index: int) -> NDArray[np.float]:
+    if not right_border_index:
+        right_border_index = trans.shape[0] - 1
+    return np.apply_along_axis(lambda x: calc_Fourier_coeff_for_pattern(x,dx,coeff), 1, trans[:right_border_index,:])
 
 
 def calc_picks(points: NDArray[np.float64], min_amplitude: float = 0.0001) -> Dict[str, Union[float, str, None]]:
