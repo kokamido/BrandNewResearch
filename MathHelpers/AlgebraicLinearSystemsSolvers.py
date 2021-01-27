@@ -40,7 +40,7 @@ def __tdma(ac: NDArray[np.float64], bc: NDArray[np.float64], cc: NDArray[np.floa
     Returns:
         x(array): solution array of the system
     """
-    nf = len(dc)  # number of equations
+    nf = len( dc)  # number of equations
     for it in range(1, nf):
         mc = ac[it - 1] / bc[it - 1]
         bc[it] = bc[it] - mc * cc[it - 1]

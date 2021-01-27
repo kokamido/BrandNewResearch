@@ -28,7 +28,8 @@ def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Hig
     del settings['u_init']
     v_init = settings['v_init']
     del settings['v_init']
-    log.info(f'Start Higgins1d evaluation with coefficients {parameters} and parameters {settings}')
+    log.info(
+        f'Start Higgins1d evaluation with coefficients {parameters} and parameters {settings}')
     steps = int(round(settings['t_max'] / settings['dt']))
     u, v, u_timeline, v_timeline = __integrate_tdma_implicit(settings['dt'], settings['dx'], steps,
                                                              parameters['p'], parameters['q'],
@@ -42,7 +43,8 @@ def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Hig
         raise ArithmeticError('Higgins1d evaluation failed')
     log.info('Higgins1d evaluation  successfully finished')
     res = Experiment()
-    res.fill(parameters, settings, {'u': u_init, 'v': v_init}, {'u': u, 'v': v}, {'u': np.vstack(u_timeline),'v': np.vstack(v_timeline)})
+    res.fill(parameters, settings, {'u': u_init, 'v': v_init}, {'u': u, 'v': v}, {
+             'u': np.vstack(u_timeline), 'v': np.vstack(v_timeline)})
     return res
 
 
@@ -79,7 +81,7 @@ def __get_right_vec_v_implicit(u: np.array, v: np.array, p: float, q: float, t: 
 
 @jit(nopython=True, parallel=True)
 def __integrate_tdma_implicit(dt: float, dx: float, steps: int, p: float, q: float, D_u: float, D_v: float,
-                              init_u: np.array, init_v: np.array, save_timeline: bool = False, 
+                              init_u: np.array, init_v: np.array, save_timeline: bool = False,
                               timeline_save_step: int = 10_000, min_t: int = None, noise_amp: float = None):
     """
     :returns: Tuple
@@ -107,7 +109,7 @@ def __integrate_tdma_implicit(dt: float, dx: float, steps: int, p: float, q: flo
                        U_l_d.copy(), __get_right_vec_u_implicit(u, v, dt))
         v_new = __tdma(V_u_d.copy(), V_m_d.copy(), V_l_d.copy(),
                        __get_right_vec_v_implicit(u, v, p, q, dt))
-        
+
         if noise_amp:
             u_new += np.random.random(u_new.shape) * noise_amp
             v_new += np.random.random(v_new.shape) * noise_amp

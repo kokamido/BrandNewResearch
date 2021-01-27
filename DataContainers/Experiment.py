@@ -29,7 +29,7 @@ class Experiment:
         self.init_values = init_values
         self.end_values = end_values
         self.timelines = timelines
-        self.metadata = {}
+        self.metadata: Dict[str, Any] = {}
         return self
 
     def fill_from_file(self, path_to_file: str, load_timelines: bool = False) -> Experiment:
