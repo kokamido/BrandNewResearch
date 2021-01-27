@@ -4,7 +4,8 @@ sys.path.insert(1, '../../')
 from DataContainers.Experiment import Experiment
 from MathHelpers.InitDataHelpers import get_cos, get_normal_rand
 from Models.Higgins1D.Higgins1DTdmaSolver import integrate_tdma_implicit_scheme
-from Models.Higgins1D.Higgins1DConfiguration import Higgins1DConfiguration, Higgins1DTdmaParameters
+from Models.Higgins1D.Higgins1DConfiguration import Higgins1DConfiguration
+from Models.TdmaParameters1D import TdmaParameters1D
 from tqdm import tqdm
 import numpy as np
 import threading, queue
@@ -26,7 +27,7 @@ for q in np.arange(2, 1, -.1):
         conf.parameters['q'] = q
         u_init = get_cos(peaks_to_start, int(round(200*0.2/0.05)), 1.0, 0.1)
         v_init = get_cos(peaks_to_start, int(round(200*0.2/0.05)), 1.0, 0.1)
-        params = Higgins1DTdmaParameters(
+        params = TdmaParameters1D(
             u_init, v_init, 0.05, 0.05, 2500.0, save_timeline=True, timeline_save_step_delta=10, noise_amp=0.01)
         e = integrate_tdma_implicit_scheme(conf, params)
         del e.timelines['v']
@@ -42,7 +43,7 @@ for q in np.arange(2, 1, -.1):
         conf.parameters['q'] = q
         u_init = get_normal_rand(int(round(200*0.2/0.05)), 1.0, 0.1)
         v_init = get_normal_rand(int(round(200*0.2/0.05)), 1.0, 0.1)
-        params = Higgins1DTdmaParameters(
+        params = TdmaParameters1D(
             u_init, v_init, 0.05, 0.05, 2500.0, save_timeline=True, timeline_save_step_delta=10, noise_amp=0.01)
         e = integrate_tdma_implicit_scheme(conf, params)
         del e.timelines['v']

@@ -18,7 +18,7 @@ def tdma(ac: NDArray[np.float64], bc: NDArray[np.float64], cc: NDArray[np.float6
             x(array): solution array of the system
         """
     log.debug(f'Start solving system of {len(dc)} equations with tdma')
-    res = __tdma(ac,bc,cc,dc)
+    res = __tdma(ac, bc, cc, dc)
     if not np.isfinite(res).all():
         log.error(f'There are nans of infs in solution')
         raise ArithmeticError('tdma goes nans')
@@ -40,7 +40,7 @@ def __tdma(ac: NDArray[np.float64], bc: NDArray[np.float64], cc: NDArray[np.floa
     Returns:
         x(array): solution array of the system
     """
-    nf = len( dc)  # number of equations
+    nf = len(dc)  # number of equations
     for it in range(1, nf):
         mc = ac[it - 1] / bc[it - 1]
         bc[it] = bc[it] - mc * cc[it - 1]

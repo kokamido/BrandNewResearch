@@ -7,10 +7,11 @@ from numba import jit
 from Logging.logger import log
 from DataContainers.Experiment import Experiment
 from MathHelpers.AlgebraicLinearSystemsSolvers import __tdma
-from Models.Higgins1D.Higgins1DConfiguration import Higgins1DConfiguration, Higgins1DTdmaParameters
+from Models.Higgins1D.Higgins1DConfiguration import Higgins1DConfiguration
+from Models.TdmaParameters1D import TdmaParameters1D
 
 
-def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Higgins1DTdmaParameters) -> Experiment:
+def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: TdmaParameters1D) -> Experiment:
     """
     Args:
         dump_path: if not None, data will be stored on disk
