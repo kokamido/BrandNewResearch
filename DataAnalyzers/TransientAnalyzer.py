@@ -22,5 +22,5 @@ def calc_min_and_max_dynamic(transient: ndarray) -> Dict[str, Tuple[ndarray, nda
     Возвращяет временные ряды, содержащие минимумы и максимумы паттерна в каждый момент времени
     """
     assert transient
-    res = np.array(apply_along_axis(labmbda x: (x.min(), x.max()), 1, transient))
+    res = np.array(apply_along_axis(lambda x: (x.min(), x.max()), 1, transient))
     return res[0, :], res[1, :]

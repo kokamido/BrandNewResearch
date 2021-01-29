@@ -7,6 +7,7 @@ from numba import jit
 from Logging.logger import log
 from DataContainers.Experiment import Experiment
 from MathHelpers.AlgebraicLinearSystemsSolvers import __tdma
+from MathHelpers.ImplicitSchemeHelper import get_diags_implicit
 from Models.Higgins1D.Higgins1DConfiguration import Higgins1DConfiguration
 from Models.TdmaParameters1D import TdmaParameters1D
 
@@ -49,27 +50,6 @@ def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Tdm
     return res
 
 
-@jit
-def __get_diags_implicit(t: float, h: float, D_coeff: float, length: int) -> Dict[str, NDArray[np.float64]]:
-    """Return upper, main and lower diag of 3-diagonal matrix
-    for solution of single equation from 1D Higgins model by Thomas algorithm
-    Args:
-        t: time step
-        h: space step
-        D_coeff: coefficient of diffusion
-        length: number of points in a row
-    Returns:
-        {'upper': NDArray, 'middle': NDArray, 'lower': NDArray}
-    """
-    h_sq = h ** 2
-    upper = np.ones(length) * D_coeff * (-t / h_sq)
-    middle = np.ones(length) * (1 + 2 * D_coeff * t / h_sq)
-    lower = upper.copy()
-    middle[0] += upper[0]
-    middle[-1] += upper[0]
-    return {'upper': upper, 'middle': middle, 'lower': lower}
-
-
 @jit(nopython=True, parallel=True)
 def __get_right_vec_u_implicit(u: np.array, v: np.array, t: float) -> np.array:
     return u + (1 - u * v) * t
@@ -92,12 +72,12 @@ def __integrate_tdma_implicit(dt: float, dx: float, steps: int, p: float, q: flo
         - v_timeline - is 2d-array contains timeline of V if save_timeline else None;
     """
 
-    diags_u = __get_diags_implicit(dt, dx, D_u, init_u.shape[0])
+    diags_u = get_diags_implicit(dt, dx, D_u, init_u.shape[0])
     U_u_d = diags_u['upper']
     U_m_d = diags_u['middle']
     U_l_d = diags_u['lower']
 
-    diags_v = __get_diags_implicit(dt, dx, D_v, init_v.shape[0])
+    diags_v = get_diags_implicit(dt, dx, D_v, init_v.shape[0])
     V_u_d = diags_v['upper']
     V_m_d = diags_v['middle']
     V_l_d = diags_v['lower']

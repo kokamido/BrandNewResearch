@@ -1,7 +1,7 @@
 import copy
 
 from DataContainers.Experiment import Experiment
-from DataAnalyzers.PicksAnalyzer import calc_picks
+from DataAnalyzers.PeaksAnalyzer import calc_peacks
 from Models.Higgins1D.Higgins1DTdmaSolver import integrate_tdma_implicit_scheme
 from Models.Higgins1D.Higgins1DConfiguration import Higgins1DConfiguration
 from Models.TdmaParameters1D import TdmaParameters1D
@@ -17,7 +17,7 @@ def check_robustness(path: str):
     params['min_t'] = 2000
     p = TdmaParameters1D.from_params_dict(params)
     new_data = integrate_tdma_implicit_scheme(conf, p)
-    if calc_picks(new_data.end_values['u']) == calc_picks(e.end_values['u']):
+    if calc_peacks(new_data.end_values['u']) == calc_peacks(e.end_values['u']):
         print(f'Good {path}')
     else:
         print(f'Bad {path}')
