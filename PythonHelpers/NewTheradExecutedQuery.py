@@ -1,4 +1,5 @@
 import threading, queue
+from time import sleep
 from typing import Callable, Any
 
 
@@ -7,21 +8,31 @@ class NewThreadExecutedQueue:
         self.__queue__ = queue.Queue()
         self.__handler__ = handler
         self.__is_closed__ = False
+        self.__thread__ = None
 
     def enqueue(self, item: Any):
-        assert item
         assert not self.__is_closed__
         self.__queue__.put(item)
 
     def start(self):
-        threading.Thread(target=self.__execute__).start()
+        self.__thread__ = threading.Thread(target=self.__execute__)
+        self.__thread__.start()
 
     def close(self):
         assert not self.__is_closed__
-        self.__is_closed__ = True
         self.enqueue(None)
+        self.__is_closed__ = True
 
     def __execute__(self):
-        for item in iter(self.__queue__.get, None):
-            if item is not None:
+        just_started = True
+        item = 'stub'
+        while item is not None:
+            if not just_started:
                 self.__handler__(item)
+            else:
+                just_started = False
+            while self.__queue__.empty():
+                sleep(5)
+            item = self.__queue__.get()
+        self.__thread__.join()
+

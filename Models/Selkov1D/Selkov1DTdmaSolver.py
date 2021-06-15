@@ -8,7 +8,7 @@ from MyPackage.Models.Selkov1D.Selkov1DConfiguration import Selkov1DConfiguratio
 from MyPackage.Models.TdmaParameters1D import TdmaParameters1D
 
 
-def integrate_tdma_implicit_scheme(config: Selkov1DConfiguration, settings: TdmaParameters1D) -> Experiment:
+def integrate_tdma_implicit_scheme(config: Selkov1DConfiguration, method_config: TdmaParameters1D) -> Experiment:
     """
     Args:
         dump_path: if not None, data will be stored on disk
@@ -19,28 +19,28 @@ def integrate_tdma_implicit_scheme(config: Selkov1DConfiguration, settings: Tdma
             - u_timeline - is 2d-array contains timeline of U if save_timeline else None;
             - v_timeline - is 2d-array contains timeline of V if save_timeline else None;
     """
-    parameters = config.parameters
-    settings = settings.parameters
-    settings['method'] = 'tdma_implicit'
-    if 'seed' not in settings:
-        settings['seed'] = np.random.randint(2147483647)
-    u_init = settings['u_init']
-    del settings['u_init']
-    v_init = settings['v_init']
-    del settings['v_init']
-    steps = int(round(settings['t_max'] / settings['dt']))
-    np.random.seed(settings['seed'])
-    u, v, u_timeline, v_timeline = __integrate_tdma_implicit(settings['dt'], settings['dx'], steps,
-                                                             parameters['n'], parameters['w'],
-                                                             parameters['Du'], parameters['Dv'],
+    model_config = config
+    method_config = method_config
+    method_config['method'] = 'tdma_implicit'
+    if 'seed' not in method_config:
+        method_config['seed'] = np.random.randint(2147483647)
+    u_init = method_config['u_init']
+    del method_config['u_init']
+    v_init = method_config['v_init']
+    del method_config['v_init']
+    steps = int(round(method_config['t_max'] / method_config['dt']))
+    np.random.seed(method_config['seed'])
+    u, v, u_timeline, v_timeline = __integrate_tdma_implicit(method_config['dt'], method_config['dx'], steps,
+                                                             model_config['theta'], model_config['omega'],
+                                                             model_config['Du'], model_config['Dv'],
                                                              u_init, v_init,
-                                                             settings['save_timeline'],
-                                                             settings['timeline_save_step_delta'],
-                                                             settings['min_t'], settings['noise_amp'])
+                                                             method_config['save_timeline'],
+                                                             method_config['timeline_save_step_delta'],
+                                                             method_config['min_t'], method_config['noise_amp'])
     if u is None:
         raise ArithmeticError('Selkov1d evaluation failed')
     res = Experiment()
-    res.fill(parameters, settings, {'u': u_init, 'v': v_init}, {'u': u, 'v': v}, {
+    res.fill(model_config,method_config, {'u': u_init, 'v': v_init}, {'u': u, 'v': v}, {
         'u': np.vstack(u_timeline), 'v': np.vstack(v_timeline)})
     return res
 

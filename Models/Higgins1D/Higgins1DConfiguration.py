@@ -1,24 +1,17 @@
 from typing import Dict, Any
 
+from MyPackage.Models.ConfigBase import ConfigBase
 
-class Higgins1DConfiguration:
+
+class Higgins1DConfiguration(ConfigBase):
 
     def __init__(self, p: float, q: float, Du: float, Dv: float):
         assert p > 0
         assert q > 0
         assert Du > 0
         assert Dv > 0
-        self.__parameters__ = {'p': p, 'q': q,
+        self.parameters = {'p': p, 'q': q,
                                'Du': Du, 'Dv': Dv, 'model': 'Higgins'}
-
-    def __str__(self):
-        return f'{self.__parameters__}'
-
-    def __getitem__(self, key):
-        return self.__parameters__[key]
-
-    def __setitem__(self, key, value):
-        self.__parameters__[key] = value
 
 
 def from_params_dict(params: Dict[str, Any]) -> Higgins1DConfiguration:
