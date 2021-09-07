@@ -1,8 +1,10 @@
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Tuple
 
 import numpy as np
 from nptyping import NDArray
 from scipy.integrate import simps
+
+from MyPackage.DataContainers.Experiment import Experiment
 
 
 def calc_mean_squared_Fourier_for_transient(trans: NDArray[np.float], dt: float, dx: float,
@@ -37,6 +39,28 @@ def calc_Fourier_coeff_for_transient(trans: NDArray[np.float], dx: float, coeff:
         left_border_index = 0
     return np.apply_along_axis(lambda x: calc_Fourier_coeff_for_pattern(x, dx, coeff), 1,
                                trans[left_border_index:right_border_index, :])
+
+
+def calc_few_Fourier_coeffs_for_transient(e: Experiment, ks, var_to_calc: str, right_border_t: float = None,
+                                          left_border_t: float = None) -> Tuple[np.ndarray, np.ndarray]:
+    dt = e.method_parameters['dt'] * \
+         e.method_parameters['timeline_save_step_delta']
+    assert var_to_calc in e.timelines
+    ts_count = e.timelines[var_to_calc].shape[0]
+    if right_border_t and right_border_t <= ts_count / dt:
+        right_border_t = int(round(right_border_t / dt))
+    else:
+        right_border_t = ts_count - 1
+    if left_border_t and left_border_t >= 0:
+        left_border_t = int(round(left_border_t / dt))
+    else:
+        left_border_t = 0
+    ts = np.array(np.linspace(left_border_t, right_border_t, right_border_t - left_border_t + 1) * dt)
+    res = np.zeros(shape=(len(ks), ts.size))
+    for i, k in enumerate(ks):
+        res[i, :] = calc_Fourier_coeff_for_transient(e.timelines['u'], e.method_parameters['dx'], k, left_border_t,
+                                                     right_border_t + 1)
+    return res, ts
 
 
 def calc_peaks_by_Fourier(points: NDArray[np.float64], dx: float, max_peaks_count: float = 10.0) -> Dict[

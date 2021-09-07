@@ -49,10 +49,11 @@ class Experiment:
         for key in self.end_values:
             self.end_values[key] = array(self.end_values[key])
 
+        self.timelines = None
         if load_timelines:
             self.timelines = {}
             for file in [f for f in listdir(path_to_data) if f.startswith('timeline_')]:
-                var_name = file.replace('timeline_', '')
+                var_name = file.replace('timeline_', '').split('.')[0]
                 self.timelines[var_name] = np.load(f'{path_to_data}/{file}')
 
         path_to_metadata = path.join(path_to_data, 'metadata')
