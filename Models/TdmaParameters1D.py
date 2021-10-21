@@ -8,7 +8,7 @@ from MyPackage.Models.ConfigBase import ConfigBase
 class TdmaParameters1D(ConfigBase):
     def __init__(self, u_init: ndarray, v_init: ndarray, dx: float, dt: float, t_max: float,
                  x_left: float, x_right: float,  save_timeline: bool = False,
-                 timeline_save_step_delta: int = 100, min_t: int = None, noise_amp: float = None, seed: int = None):
+                 timeline_save_step_delta: int = 100, min_t: int = None, noise_amp: float = 0.0, seed: int = None):
         assert u_init.shape == v_init.shape
         assert dx > 0
         assert dt > 0
@@ -20,7 +20,7 @@ class TdmaParameters1D(ConfigBase):
         assert int(round((x_right - x_left) / dx)) == u_init.size - 1
         self.parameters = {'u_init': u_init, 'v_init': v_init, 'dx': dx, 'dt': dt, 't_max': t_max, 'min_t': min_t,
                                'save_timeline': save_timeline, 'timeline_save_step_delta': timeline_save_step_delta,
-                               'noise_amp': 0.0, 'seed': seed, 'x_right': x_right, 'x_left': x_left}
+                               'noise_amp': noise_amp, 'seed': seed, 'x_right': x_right, 'x_left': x_left}
 
 
     def copy(self, modification=None):

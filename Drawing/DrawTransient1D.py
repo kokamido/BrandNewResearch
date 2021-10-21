@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 from typing import List, Union, Any
 
 import numpy as np
@@ -7,10 +7,11 @@ from matplotlib.lines import Line2D
 from pylab import axes
 from seaborn import heatmap, color_palette
 
-from MyPackage.DataAnalyzers.PeaksAnalyzer import calc_few_Fourier_coeffs_for_transient
 from MyPackage.DataAnalyzers.TransientAnalyzer import add_peaks_stats_Higgins1D, add_amp_stats_Higgins1D, \
     calc_deltas_for_timeline_1D
+from MyPackage.DataAnalyzers.PeaksAnalyzer import calc_few_Fourier_coeffs_for_experiment
 from MyPackage.DataContainers.Experiment import Experiment
+from MyPackage.DataContainers.ExperimentHelper import convert_time_to_indices
 from MyPackage.Drawing.DrawHelper import set_xticks, set_yticks, mark_bigger_values
 
 
@@ -20,7 +21,7 @@ def draw_few_Fouriers(e: Experiment, ks, right_border_t: float = None, left_bord
                       c_k_palette: Dict[float, str] = None, var_to_draw: str = 'u') -> axes:
     assert mark_bigger_quantile is None or quantile_palette is not None
     ax = ax if ax else plt.gca()
-    coeffs, ts = calc_few_Fourier_coeffs_for_transient(e, ks, var_to_draw, right_border_t, left_border_t)
+    coeffs, ts = calc_few_Fourier_coeffs_for_experiment(e, ks, var_to_draw, left_border_t, right_border_t)
 
     def zero_except_top_n(arr, n):
         arr[(-np.abs(arr)).argsort()[n:]] *= 0
@@ -36,6 +37,7 @@ def draw_few_Fouriers(e: Experiment, ks, right_border_t: float = None, left_bord
             mark_bigger_values(res[i, :], mark_bigger_quantile, ax, quantile_palette[k], e.method_parameters['dx'])
     if logscale:
         ax.set_yscale('log')
+    ax.set_xlim(left_border_t, right_border_t)
     plt.legend()
     return ax
 
@@ -112,20 +114,11 @@ def draw_transient(e: Experiment, left_border: float = None, right_border: float
 
     dt = e.method_parameters['dt'] * e.method_parameters['timeline_save_step_delta']
     dx = e.method_parameters['dx']
-    time_step_max = e.timelines['u'].shape[0] - 1
 
     cbar_kws = cbar_kws if cbar_kws is not None else {}
-    if left_border is None or left_border < 0:
-        left_border = 0
-    if right_border is None or right_border > time_step_max * dt:
-        right_border = time_step_max * dt
-
-    if left_border >= right_border:
-        left_border = right_border - 100
 
     time_range = (right_border - left_border)
-    left_border = int(left_border / dt)
-    right_border = int(right_border / dt)
+    left_border, right_border = convert_time_to_indices(e, left_border, right_border)
 
     if xticks is None:
         quant = max(int(time_range / dt // 6), 1)
@@ -151,6 +144,7 @@ def draw_transient(e: Experiment, left_border: float = None, right_border: float
 
 def draw_transient_parts_with_max_coeffs(e: Experiment, coeffs_to_search: List[float], var_to_draw: str,
                                          skip_from_start: int = 100, window_size_t: int = 100,
+                                         left_border_t: Optional[float] = None, right_border_t: Optional[float] = None,
                                          axs: List[axes] = None) -> Tuple[plt.figure, List[axes]]:
     assert e.timelines is not None
     assert var_to_draw in e.timelines
@@ -158,9 +152,8 @@ def draw_transient_parts_with_max_coeffs(e: Experiment, coeffs_to_search: List[f
     fig = None
     if axs is None:
         fig, axs = plt.subplots(len(coeffs_to_search), 1)
-    coeffs, ts = calc_few_Fourier_coeffs_for_transient(e, coeffs_to_search, var_to_draw)
+    coeffs, ts = calc_few_Fourier_coeffs_for_experiment(e, coeffs_to_search, var_to_draw, left_border_t, right_border_t)
     coeffs = coeffs[:, skip_from_start:]
-    ts = ts[skip_from_start:, ]
     max_indices = np.apply_along_axis(np.argmax, 1, np.abs(coeffs))
     dt = e.method_parameters['dt'] * e.method_parameters['timeline_save_step_delta']
     window_size = int(window_size_t / dt)
@@ -170,10 +163,12 @@ def draw_transient_parts_with_max_coeffs(e: Experiment, coeffs_to_search: List[f
         left_border = max(0, max_ind - window_size)
         right_border = min(max_ind + window_size, timeline.shape[0] - 1)
         to_draw_trans = timeline[left_border: right_border, :]
-        xlabels = np.linspace(0, right_border - left_border + 1, 5)  + ts[max_ind - window_size] / dt
-        ylabels = np.round(np.linspace(e.method_parameters['x_left'], e.method_parameters['x_right'], 5) / e.method_parameters['dx'], 1)
+        xlabels = np.linspace(0, right_border - left_border + 1, 5) + ts[max_ind - window_size] / dt
+        ylabels = np.round(
+            np.linspace(e.method_parameters['x_left'], e.method_parameters['x_right'], 5) / e.method_parameters['dx'],
+            1)
         res.append(__draw_transient__(to_draw_trans.T, dt, e.method_parameters['dx'], '$t$', '$x$',
-                           'nipy_spectral_r', xlabels, ylabels, ax, {}))
+                                      'nipy_spectral_r', xlabels, ylabels, ax, {}))
         ax.set_title(f'$C_{{{coeff_val}}}$')
     return fig, res
 

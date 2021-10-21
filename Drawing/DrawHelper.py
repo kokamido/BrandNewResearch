@@ -55,3 +55,5 @@ def mark_bigger_values(data: ndarray, quantile: float, ax: axes, color: str = 'r
     for left, right in ranges:
         ax.fill_betweenx(left * dx, right * dx, color=color, alpha=alpha)
     return ax
+
+
