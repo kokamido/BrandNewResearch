@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit, njit
+from numba import njit
 
 from MyPackage.DataContainers.Experiment import Experiment
 from MyPackage.MathHelpers.AlgebraicLinearSystemsSolvers import tdma
@@ -45,12 +45,12 @@ def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Tdm
     return res
 
 
-@jit(nopython=True, parallel=True)
+@njit(fastmath=True, parallel=True)
 def __get_right_vec_u_implicit(u: np.array, v: np.array, t: float) -> np.array:
     return u + (1 - u * v) * t
 
 
-@jit(nopython=True, parallel=True)
+@njit(fastmath=True, parallel=True)
 def __get_right_vec_v_implicit(u: np.array, v: np.array, p: float, q: float, t: float) -> np.array:
     return v + t * p * v * (u - (1 + q) / (q + v))
 

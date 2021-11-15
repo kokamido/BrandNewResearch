@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+from numba import njit
 
 from MyPackage.DataContainers.Experiment import Experiment
 from MyPackage.MathHelpers.AlgebraicLinearSystemsSolvers import tdma
@@ -45,17 +45,17 @@ def integrate_tdma_implicit_scheme(config: Selkov1DConfiguration, method_config:
     return res
 
 
-@jit(nopython=True, parallel=True)
+@njit(fastmath=True, parallel=True)
 def __get_right_vec_u_implicit__(u: np.array, v: np.array, n: float, t: float) -> np.array:
     return u + (n - u * v * v) * t
 
 
-@jit(nopython=True, parallel=True)
+@njit(fastmath=True, parallel=True)
 def __get_right_vec_v_implicit__(u: np.array, v: np.array, w: float, t: float) -> np.array:
     return v + t * (u * v * v - w * v)
 
 
-@jit(nopython=True, parallel=True)
+@njit(fastmath=True, parallel=True)
 def __integrate_tdma_implicit__(dt: float, dx: float, steps: int, n: float, w: float, D_u: float, D_v: float,
                                 init_u: np.array, init_v: np.array, save_timeline: bool = False,
                                 timeline_save_step: int = 10_000, min_t: int = None, noise_amp: float = None):

@@ -1,9 +1,9 @@
 import numpy as np
 from nptyping import NDArray
-from numba import jit
+from numba import njit
 
 
-@jit(nopython=True)
+@njit(fastmath=True)
 def tdma(ac: NDArray[np.float64], bc: NDArray[np.float64], cc: NDArray[np.float64], dc: NDArray[np.float64]) \
         -> NDArray[np.float64]:
     """Solution of a linear system of algebraic equations with a

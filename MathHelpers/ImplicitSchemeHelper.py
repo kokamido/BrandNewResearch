@@ -1,10 +1,10 @@
 import numpy as np
-from numba import jit
+from numba import njit
 from typing import Dict
 from nptyping import NDArray
 
 
-@jit
+@njit(fastmath=True, parallel=True)
 def get_diags_implicit(t: float, h: float, D_coeff: float, length: int) -> Dict[str, NDArray[np.float64]]:
     """Return upper, main and lower diag of 3-diagonal matrix
     for solution of single equation from 1D Higgins model by Thomas algorithm

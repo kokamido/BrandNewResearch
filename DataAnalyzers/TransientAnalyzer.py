@@ -4,7 +4,7 @@ import numpy as np
 from nptyping import NDArray
 from numpy.linalg import norm
 
-from MyPackage.DataAnalyzers.PeaksAnalyzer import calc_peaks_by_Fourier
+from MyPackage.DataAnalyzers.PeaksAnalyzer import _calc_peaks_by_Fourier
 from MyPackage.DataContainers.Experiment import Experiment
 
 
@@ -31,8 +31,8 @@ def calc_min_and_max_dynamic(transient: NDArray) -> Tuple[NDArray, NDArray]:
 
 def add_peaks_stats_Higgins1D(e: Experiment) -> Experiment:
     dx = e.method_parameters['dx']
-    peaks_u = calc_peaks_by_Fourier(e.end_values['u'], dx)
-    peaks_v = calc_peaks_by_Fourier(e.end_values['v'], dx)
+    peaks_u = _calc_peaks_by_Fourier(e.end_values['u'], dx)
+    peaks_v = _calc_peaks_by_Fourier(e.end_values['v'], dx)
     e.metadata['end_picks'] = {'u': peaks_u, 'v': peaks_v}
     return e
 

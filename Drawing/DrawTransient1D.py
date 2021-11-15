@@ -7,18 +7,18 @@ from matplotlib.lines import Line2D
 from pylab import axes
 from seaborn import heatmap, color_palette
 
+from MyPackage.DataAnalyzers.PeaksAnalyzer import calc_few_Fourier_coeffs_for_experiment
 from MyPackage.DataAnalyzers.TransientAnalyzer import add_peaks_stats_Higgins1D, add_amp_stats_Higgins1D, \
     calc_deltas_for_timeline_1D
-from MyPackage.DataAnalyzers.PeaksAnalyzer import calc_few_Fourier_coeffs_for_experiment
 from MyPackage.DataContainers.Experiment import Experiment
 from MyPackage.DataContainers.ExperimentHelper import convert_time_to_indices
 from MyPackage.Drawing.DrawHelper import set_xticks, set_yticks, mark_bigger_values
 
 
-def draw_few_Fouriers(e: Experiment, ks, right_border_t: float = None, left_border_t: float = None, ax: axes = None,
+def draw_few_Fouriers(e: Experiment, ks, left_border_t: float = None, right_border_t: float = None, ax: axes = None,
                       logscale: bool = False, mark_bigger_quantile: float = None,
                       quantile_palette: Dict[float, str] = None, top_n: int = 3,
-                      c_k_palette: Dict[float, str] = None, var_to_draw: str = 'u') -> axes:
+                      c_k_palette: Dict[float, str] = None, var_to_draw: str = 'u', legend: bool = True) -> axes:
     assert mark_bigger_quantile is None or quantile_palette is not None
     ax = ax if ax else plt.gca()
     coeffs, ts = calc_few_Fourier_coeffs_for_experiment(e, ks, var_to_draw, left_border_t, right_border_t)
@@ -38,7 +38,26 @@ def draw_few_Fouriers(e: Experiment, ks, right_border_t: float = None, left_bord
     if logscale:
         ax.set_yscale('log')
     ax.set_xlim(left_border_t, right_border_t)
-    plt.legend()
+    if legend:
+        plt.legend()
+    return ax
+
+
+def draw_few_Fouriers_abs_heatmap(e: Experiment, ks, val_to_draw: str, left_border_t: float = None,
+                                  right_border_t: float = None, ax: axes = None, cmap: str = 'inferno',
+                                  cbar_kws: Dict[str, Any] = {'use_gridspec': False, 'location': 'top'}):
+    ax = ax or plt.gca()
+    coeffs, ts = calc_few_Fourier_coeffs_for_experiment(e, ks, val_to_draw, left_border_t, right_border_t)
+    ax = heatmap(np.abs(coeffs), cmap=cmap, cbar_kws=cbar_kws)
+    ax.set_yticklabels(ks, rotation=0)
+    ax.set_ylabel('$C_k$', rotation=45)
+    xticks = np.linspace(0,len(ts), 11)
+    xticklabels = np.linspace(left_border_t,right_border_t,11)
+    if all([x % 1 == 0 for x in xticklabels]):
+        xticklabels = xticklabels.astype(int)
+    ax.set_xticks(xticks)
+    ax.set_xticklabels(xticklabels, rotation=0)
+    ax.set_xlabel('t')
     return ax
 
 
@@ -117,11 +136,11 @@ def draw_transient(e: Experiment, left_border: float = None, right_border: float
 
     cbar_kws = cbar_kws if cbar_kws is not None else {}
 
-    time_range = (right_border - left_border)
     left_border, right_border = convert_time_to_indices(e, left_border, right_border)
 
+    time_range = (right_border - left_border)
     if xticks is None:
-        quant = max(int(time_range / dt // 6), 1)
+        quant = max(int(time_range // 6), 1)
         xticklabels = [i for i in np.linspace(
             left_border, right_border, (right_border - left_border) // quant)]
     else:

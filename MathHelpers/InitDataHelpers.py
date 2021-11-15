@@ -4,18 +4,18 @@ import numpy as np
 from nptyping import NDArray
 
 
-def get_cos(picks: float, points_count: int, shift: float, amplitude: float) -> NDArray[np.float64]:
+def get_cos(peaks: float, points_count: int, shift: float, amplitude: float) -> NDArray[np.float64]:
     """Returns n-pick cos structure.
     Args:
         amplitude: cos scaling factor
         shift: linear shift
         points_count: number of grid points
-        picks: should be integer or half-integer positive number
+        peaks: should be integer or half-integer positive number
     Returns
         NDArray[np.float64] array of points
     """
-    assert (picks % 0.5) < 0.01, f"\'picks\' should be integer or half-integer positive number, given value '{picks}'"
-    return np.cos(np.linspace(0, picks * 2 * np.pi, points_count, dtype=np.float64)) * amplitude + shift
+    assert (peaks % 0.5) < 0.01, f"\'picks\' should be integer or half-integer positive number, given value '{peaks}'"
+    return np.cos(np.linspace(0, peaks * 2 * np.pi, points_count, dtype=np.float64)) * amplitude + shift
 
 
 def get_normal_rand(points_count: int, mean: float, std_dev: float) -> Union[NDArray, int, float, complex]:
