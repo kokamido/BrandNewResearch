@@ -69,6 +69,16 @@ class MultipleExperimentContainer:
                 res.append(self.experiments[key])
         return res
 
+    def get_uniq_values(self, param_name: str) -> tp.List[tp.Any]:
+        common_conf, uniq_confs = self.get_configs_uniq()
+        if param_name in common_conf:
+            return [common_conf[param_name]]
+        res = []
+        for c in uniq_confs:
+            if param_name in c:
+                res.append(c[param_name])
+        return res
+
     @staticmethod
     def __match_filter(key: frozendict, filter: tp.Dict[str, tp.Any]) -> bool:
         if not filter:

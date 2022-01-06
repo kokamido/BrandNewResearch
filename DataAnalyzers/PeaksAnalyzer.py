@@ -10,7 +10,7 @@ from MyPackage.DataContainers.PeakPatternType import PeakPatternType, PatternDir
 
 
 def calc_mean_squared_Fourier_for_experiment(ex: Experiment, coeff: Union[float, List[float]], var: str,
-                                             left_border: Optional[int] = None, right_border: Optional[int] = None) \
+                                             left_border: Optional[float] = None, right_border: Optional[float] = None) \
         -> Dict[float, float]:
     left_border, right_border = convert_time_to_indices(ex, left_border, right_border)
     return calc_mean_squared_Fourier_for_transient(ex.timelines[var][left_border:right_border, ],
@@ -105,7 +105,7 @@ def _calc_peaks_by_Fourier(points: np.ndarray, dx: float, max_peaks_count: float
     """
     coeffs_to_check = np.linspace(.5, max_peaks_count, int(max_peaks_count * 2))
     coeffs = np.apply_along_axis(lambda c: calc_Fourier_coeff_for_pattern(
-        points, dx, c), 1, coeffs_to_check.reshape(coeffs_to_check.size, 1))
+        points, dx, float(c)), 1, coeffs_to_check.reshape(coeffs_to_check.size, 1))
     max_coeff_index = np.argmax(np.abs(coeffs))
     peaks = coeffs_to_check[max_coeff_index]
     direction = PatternDirection.DOWN if coeffs[max_coeff_index] < 0 else PatternDirection.UP

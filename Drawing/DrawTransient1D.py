@@ -7,11 +7,13 @@ from matplotlib.lines import Line2D
 from pylab import axes
 from seaborn import heatmap, color_palette
 
-from MyPackage.DataAnalyzers.PeaksAnalyzer import calc_few_Fourier_coeffs_for_experiment
+from MyPackage.DataAnalyzers.PeaksAnalyzer import calc_few_Fourier_coeffs_for_experiment, \
+    calc_mean_squared_Fourier_for_experiment
 from MyPackage.DataAnalyzers.TransientAnalyzer import add_peaks_stats_Higgins1D, add_amp_stats_Higgins1D, \
     calc_deltas_for_timeline_1D
 from MyPackage.DataContainers.Experiment import Experiment
 from MyPackage.DataContainers.ExperimentHelper import convert_time_to_indices
+from MyPackage.DataContainers.ExperimentHelper import suggest_time_borders
 from MyPackage.Drawing.DrawHelper import set_xticks, set_yticks, mark_bigger_values
 
 
@@ -39,25 +41,40 @@ def draw_few_Fouriers(e: Experiment, ks, left_border_t: float = None, right_bord
         ax.set_yscale('log')
     ax.set_xlim(left_border_t, right_border_t)
     if legend:
-        plt.legend()
+        ax.legend(loc='center right')
     return ax
 
 
-def draw_few_Fouriers_abs_heatmap(e: Experiment, ks, val_to_draw: str, left_border_t: float = None,
-                                  right_border_t: float = None, ax: axes = None, cmap: str = 'inferno',
-                                  cbar_kws: Dict[str, Any] = {'use_gridspec': False, 'location': 'top'}):
+def draw_means_squared_Fouriers(e: Experiment, ks: List[float], var_name: str, left_border_t: Optional[float] = None,
+                                right_border_t: Optional[float] = None, ax: Optional[plt.Axes] = None) -> plt.Axes:
+    left_border_t, right_border_t = suggest_time_borders(e, left_border_t, right_border_t)
+    ax = ax or plt.gca()
+    coeffs = calc_mean_squared_Fourier_for_experiment(e, ks, var_name, left_border_t, right_border_t)
+    ax.scatter(coeffs.keys(), coeffs.values(), label='$W_k$',s=150  )
+    ax.set_xlabel('$k$')
+    ax.legend()
+    return ax
+
+
+def draw_few_Fouriers_abs_heatmap(e: Experiment, ks, val_to_draw: str, left_border_t: float,
+                                  right_border_t: float, ax: axes = None, cmap: str = 'inferno',
+                                  cbar_kws: Dict[str, Any] = None):
+    if cbar_kws is None:
+        cbar_kws = {'use_gridspec': False, 'location': 'top'}
     ax = ax or plt.gca()
     coeffs, ts = calc_few_Fourier_coeffs_for_experiment(e, ks, val_to_draw, left_border_t, right_border_t)
-    ax = heatmap(np.abs(coeffs), cmap=cmap, cbar_kws=cbar_kws)
+    ax = heatmap(np.abs(coeffs), cmap=cmap, cbar_kws=cbar_kws, ax=ax)
+    ax.set_yticks([x+.5 for x in range(len(ks))])
     ax.set_yticklabels(ks, rotation=0)
     ax.set_ylabel('$C_k$', rotation=45)
-    xticks = np.linspace(0,len(ts), 11)
-    xticklabels = np.linspace(left_border_t,right_border_t,11)
+    xticks = np.linspace(0, len(ts), 6)
+    xticklabels = np.linspace(left_border_t, right_border_t, 6)
     if all([x % 1 == 0 for x in xticklabels]):
         xticklabels = xticklabels.astype(int)
+    xticklabels = [str(x) for x in xticklabels]
+    xticklabels[-1] = '$t$'
     ax.set_xticks(xticks)
     ax.set_xticklabels(xticklabels, rotation=0)
-    ax.set_xlabel('t')
     return ax
 
 
@@ -134,7 +151,7 @@ def draw_transient(e: Experiment, left_border: float = None, right_border: float
     dt = e.method_parameters['dt'] * e.method_parameters['timeline_save_step_delta']
     dx = e.method_parameters['dx']
 
-    cbar_kws = cbar_kws if cbar_kws is not None else {}
+    cbar_kws = cbar_kws if cbar_kws is not None else {'use_gridspec': False, 'location': 'top'}
 
     left_border, right_border = convert_time_to_indices(e, left_border, right_border)
 
@@ -147,7 +164,7 @@ def draw_transient(e: Experiment, left_border: float = None, right_border: float
         xticklabels = xticks
 
     if yticks is None:
-        ytickslabels = [round(i, 3) for i in np.linspace(0, int(e.timelines['u'].shape[1]), 5)]
+        ytickslabels = [round(i, 3) for i in np.linspace(0, int(e.timelines['u'].shape[1] - 1), 5)]
     else:
         ytickslabels = yticks
 

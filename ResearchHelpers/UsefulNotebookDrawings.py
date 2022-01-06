@@ -9,10 +9,13 @@ from tqdm import tqdm
 from MyPackage.DataAnalyzers.PeaksAnalyzer import calc_mean_squared_Fourier_for_experiment
 from MyPackage.DataAnalyzers.PeaksAnalyzer import calc_peaks_by_Fourier
 from MyPackage.DataContainers.Experiment import Experiment
+from MyPackage.DataContainers.ExperimentHelper import suggest_time_borders
 from MyPackage.DataContainers.MultipleExperimentContainer import MultipleExperimentContainer
 from MyPackage.DataContainers.PeakPatternType import PeakPatternType, PatternDirection
 from MyPackage.Drawing.DrawHelper import set_defaults_1D
 from MyPackage.Drawing.DrawPattern1D import draw_pattern
+from MyPackage.Drawing.DrawTransient1D import draw_few_Fouriers, draw_transient, draw_means_squared_Fouriers, \
+    draw_few_Fouriers_abs_heatmap
 
 COLORS = dict(zip([round(i / 2, 1) for i in range(1, 11)], plt.cm.get_cmap('tab10').colors))
 
@@ -83,6 +86,41 @@ def draw_w_k_dynamics(data: MultipleExperimentContainer, var_name: str, key_fiel
     ax.set_xlabel(key_field)
     if logscale:
         ax.set_yscale('log')
-    ax.set_title(str(filter_condition).replace("'",'')[1:-1])
+    ax.set_title(str(filter_condition).replace("'", '')[1:-1])
+    plt.legend()
+    plt.show()
+
+
+def draw_quadreega(ex: Experiment, ks: tp.List[float], var_name: str, left_border_t: tp.Optional[float] = None,
+                   right_border_t: tp.Optional[float] = None) -> None:
+    set_defaults_1D()
+    left_border_t, right_border_t = suggest_time_borders(ex, left_border_t, right_border_t)
+    fig, axes = plt.subplots(2, 2, figsize=(28, 14))
+    draw_transient(ex, left_border_t, right_border_t, ax=axes[0][0],
+                   cbar_kws={'use_gridspec': False, 'location': 'top'})
+    draw_few_Fouriers(ex, ks, left_border_t, right_border_t, ax=axes[0][1], top_n=1)
+    draw_means_squared_Fouriers(ex, ks, var_name, left_border_t, right_border_t, ax=axes[1][1])
+    draw_few_Fouriers_abs_heatmap(ex, ks, var_name, left_border_t, right_border_t, ax=axes[1][0])
+    fig.suptitle(str({**ex.model_config, 'noise_amp': ex.method_parameters['noise_amp']}))
+    plt.show()
+
+
+def draw_mean_wk_points(data: MultipleExperimentContainer, var_name: str, ks: tp.List[float], logscale:bool=False):
+    set_defaults_1D()
+    ax = plt.gca()
+    res = {k: 0 for k in ks}
+    for i, noise in enumerate(data.get_uniq_values('noise_amp')[:10]):
+        exps = data.get_experiments_by_filter({'noise_amp': noise})
+        total = len(exps)
+        exps = [e for e in exps if e.timelines['u'].size > 500]
+        for wks in tqdm(map(lambda e: calc_mean_squared_Fourier_for_experiment(e, ks, var_name), exps), total=total):
+            for k in wks:
+                res[k] += wks[k]
+        for k in ks:
+            res[k] /= len(exps)
+        ax.scatter(res.keys(), res.values(), color=COLORS[round((i+1)/2, 1)], s=200, label=noise)
+    if logscale:
+         ax.set_yscale('log')
+    plt.suptitle(str(data.get_experiments_by_filter({})[0].model_config)[1:-1])
     plt.legend()
     plt.show()

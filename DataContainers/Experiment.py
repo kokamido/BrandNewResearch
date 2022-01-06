@@ -13,8 +13,7 @@ from MyPackage.PythonHelpers.IOHelpers import write_to_file, to_json_np_aware, l
 
 class Experiment:
     Experiment = TypeVar('Experiment')
-    NecessaryFiles = ['end_values', 'init_values', 'timeline_u.npy', 'timeline_v.npy', 'method_parameters',
-                      'model_config']
+    NecessaryFiles = ['end_values', 'init_values', 'method_parameters', 'model_config']
 
     def fill(self, model_config: ConfigBase, method_parameters: ConfigBase,
              init_values: Dict[str, NDArray], end_values: Dict[str, NDArray],
