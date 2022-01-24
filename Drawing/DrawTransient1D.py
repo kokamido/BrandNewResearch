@@ -20,7 +20,8 @@ from MyPackage.Drawing.DrawHelper import set_xticks, set_yticks, mark_bigger_val
 def draw_few_Fouriers(e: Experiment, ks, left_border_t: float = None, right_border_t: float = None, ax: axes = None,
                       logscale: bool = False, mark_bigger_quantile: float = None,
                       quantile_palette: Dict[float, str] = None, top_n: int = 3,
-                      c_k_palette: Dict[float, str] = None, var_to_draw: str = 'u', legend: bool = True) -> axes:
+                      c_k_palette: Dict[float, str] = None, var_to_draw: str = 'u', legend: bool = True,
+                      coeffs_legend_loc: str = 'center') -> axes:
     assert mark_bigger_quantile is None or quantile_palette is not None
     ax = ax if ax else plt.gca()
     coeffs, ts = calc_few_Fourier_coeffs_for_experiment(e, ks, var_to_draw, left_border_t, right_border_t)
@@ -41,7 +42,7 @@ def draw_few_Fouriers(e: Experiment, ks, left_border_t: float = None, right_bord
         ax.set_yscale('log')
     ax.set_xlim(left_border_t, right_border_t)
     if legend:
-        ax.legend(loc='center right')
+        ax.legend(loc=coeffs_legend_loc, ncol=5, fancybox=True)
     return ax
 
 
@@ -50,7 +51,7 @@ def draw_means_squared_Fouriers(e: Experiment, ks: List[float], var_name: str, l
     left_border_t, right_border_t = suggest_time_borders(e, left_border_t, right_border_t)
     ax = ax or plt.gca()
     coeffs = calc_mean_squared_Fourier_for_experiment(e, ks, var_name, left_border_t, right_border_t)
-    ax.scatter(coeffs.keys(), coeffs.values(), label='$W_k$',s=150  )
+    ax.scatter(coeffs.keys(), coeffs.values(), label='$W_k$', s=150)
     ax.set_xlabel('$k$')
     ax.legend()
     return ax
@@ -64,7 +65,7 @@ def draw_few_Fouriers_abs_heatmap(e: Experiment, ks, val_to_draw: str, left_bord
     ax = ax or plt.gca()
     coeffs, ts = calc_few_Fourier_coeffs_for_experiment(e, ks, val_to_draw, left_border_t, right_border_t)
     ax = heatmap(np.abs(coeffs), cmap=cmap, cbar_kws=cbar_kws, ax=ax)
-    ax.set_yticks([x+.5 for x in range(len(ks))])
+    ax.set_yticks([x + .5 for x in range(len(ks))])
     ax.set_yticklabels(ks, rotation=0)
     ax.set_ylabel('$C_k$', rotation=45)
     xticks = np.linspace(0, len(ts), 6)

@@ -1,5 +1,6 @@
 import os
 import typing as tp
+from collections import defaultdict
 
 from frozendict import frozendict
 
@@ -8,14 +9,17 @@ from MyPackage.DataContainers.Experiment import Experiment
 
 class MultipleExperimentContainer:
 
-    def __init__(self, folders: tp.Union[str, tp.List[str]], load_timelines: bool = True):
+    def __init__(self, folders: tp.Union[str, tp.List[str]], load_timelines: bool = True,
+                 max_by_key: tp.Optional[int] = None):
         if isinstance(folders, str):
             folders = [folders]
         self.experiments: tp.Dict[frozendict, tp.Any] = {}
+        self.experiments_without_folder: defaultdict[frozendict, int] = defaultdict(lambda: 0)
         self.__load_timelines = load_timelines
 
         for folder in folders:
-            self.__get_all_experiments(folder)
+            self.__get_all_experiments(folder, max_by_key)
+        del self.experiments_without_folder
 
     def get_configs(self):
         res = set()
@@ -77,7 +81,7 @@ class MultipleExperimentContainer:
         for c in uniq_confs:
             if param_name in c:
                 res.append(c[param_name])
-        return res
+        return sorted(res)
 
     @staticmethod
     def __match_filter(key: frozendict, filter: tp.Dict[str, tp.Any]) -> bool:
@@ -91,10 +95,23 @@ class MultipleExperimentContainer:
         params = {**ex.method_parameters, **ex.model_config, 'folder': folder}
         return ex, frozendict(params)
 
-    def __get_all_experiments(self, folder: str):
+    def __get_key_without_folder(self, exp_folder) -> frozendict:
+        assert Experiment.is_experiment(exp_folder)
+        ex: Experiment = Experiment().fill_from(exp_folder, load_timelines=False)
+        return frozendict({**ex.method_parameters, **ex.model_config})
+
+    def __get_all_experiments(self, folder: str, max_by_key: tp.Optional[int] = None):
         if Experiment.is_experiment(folder):
+            if max_by_key:
+                key_no_folder = self.__get_key_without_folder(folder)
+                if (
+                        key_no_folder in self.experiments_without_folder and
+                        self.experiments_without_folder[key_no_folder] >= max_by_key
+                ):
+                    return
+                self.experiments_without_folder[key_no_folder] += 1
             ex, key = self.__get_experiment_and_key(folder)
             self.experiments[key] = ex
         elif os.path.isdir(folder):
             for f in os.listdir(folder):
-                self.__get_all_experiments(os.path.join(folder, f))
+                self.__get_all_experiments(os.path.join(folder, f), max_by_key)
