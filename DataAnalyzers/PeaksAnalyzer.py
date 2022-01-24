@@ -67,7 +67,7 @@ def simpson_nb(y, dx):
     return (dx / 3.) * s
 
 
-@njit(fastmath=True, parallel=True)
+@njit(fastmath=True)
 def calc_Fourier_coeff_for_pattern(points: np.ndarray, dx: float, coeff: float) -> float:
     xs = np.linspace(0, points.shape[0] - 1, points.shape[0]) * dx
     x_max = (points.shape[0] - 1) * dx
