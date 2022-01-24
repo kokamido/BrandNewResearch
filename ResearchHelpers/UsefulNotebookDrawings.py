@@ -1,3 +1,4 @@
+from datetime import datetime
 import typing as tp
 from collections import defaultdict
 
@@ -92,20 +93,23 @@ def draw_w_k_dynamics(data: MultipleExperimentContainer, var_name: str, key_fiel
 
 
 def draw_quadreega(ex: Experiment, ks: tp.List[float], var_name: str, left_border_t: tp.Optional[float] = None,
-                   right_border_t: tp.Optional[float] = None) -> None:
+                   right_border_t: tp.Optional[float] = None, top_n_coeffs: int = 1,
+                   coeffs_legend_loc: str = None) -> None:
     set_defaults_1D()
     left_border_t, right_border_t = suggest_time_borders(ex, left_border_t, right_border_t)
     fig, axes = plt.subplots(2, 2, figsize=(28, 14))
     draw_transient(ex, left_border_t, right_border_t, ax=axes[0][0],
                    cbar_kws={'use_gridspec': False, 'location': 'top'})
-    draw_few_Fouriers(ex, ks, left_border_t, right_border_t, ax=axes[0][1], top_n=1)
+    draw_few_Fouriers(ex, ks, left_border_t, right_border_t, ax=axes[0][1], top_n=top_n_coeffs,
+                      coeffs_legend_loc=coeffs_legend_loc)
     draw_means_squared_Fouriers(ex, ks, var_name, left_border_t, right_border_t, ax=axes[1][1])
-    draw_few_Fouriers_abs_heatmap(ex, ks, var_name, left_border_t, right_border_t, ax=axes[1][0])
+    draw_few_Fouriers_abs_heatmap(ex, ks, var_name, left_border_t, right_border_t, ax=axes[1][0],
+                                  cmap='nipy_spectral_r')
     fig.suptitle(str({**ex.model_config, 'noise_amp': ex.method_parameters['noise_amp']}))
     plt.show()
 
 
-def draw_mean_wk_points(data: MultipleExperimentContainer, var_name: str, ks: tp.List[float], logscale:bool=False):
+def draw_mean_wk_points(data: MultipleExperimentContainer, var_name: str, ks: tp.List[float], logscale: bool = False):
     set_defaults_1D()
     ax = plt.gca()
     res = {k: 0 for k in ks}
@@ -118,9 +122,9 @@ def draw_mean_wk_points(data: MultipleExperimentContainer, var_name: str, ks: tp
                 res[k] += wks[k]
         for k in ks:
             res[k] /= len(exps)
-        ax.scatter(res.keys(), res.values(), color=COLORS[round((i+1)/2, 1)], s=200, label=noise)
+        ax.scatter(res.keys(), res.values(), color=COLORS[round((i + 1) / 2, 1)], s=200, label=noise)
     if logscale:
-         ax.set_yscale('log')
+        ax.set_yscale('log')
     plt.suptitle(str(data.get_experiments_by_filter({})[0].model_config)[1:-1])
     plt.legend()
     plt.show()
