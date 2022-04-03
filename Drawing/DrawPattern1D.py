@@ -14,7 +14,9 @@ def draw_timeline_cross_section(ex: Experiment, value_to_draw: str, t: float, co
 
 def draw_pattern(ex: Experiment, var_name: str, color: tp.Any = 'b', title: str = None, label: str = None,
                  ax: plt.axes = None, linestyle: str = '-') -> plt.axes:
-    return draw_pattern_from_array(ex.end_values[var_name], ex.method_parameters['dx'], color, title, label, ax, linestyle)
+    ax = draw_pattern_from_array(ex.end_values[var_name], ex.method_parameters['dx'], color, title, label, ax, linestyle)
+    ax.set_ylabel(var_name, rotation=0)
+    return ax
 
 
 def draw_pattern_from_array(data: np.array, dx: float, color: str = 'b', title: str = None, label: str = None,

@@ -8,7 +8,7 @@ from MyPackage.Models.Selkov1D.Selkov1DConfiguration import Selkov1DConfiguratio
 from MyPackage.Models.TdmaParameters1D import TdmaParameters1D
 
 
-def integrate_tdma_implicit_scheme(config: Selkov1DConfiguration, method_config: TdmaParameters1D) -> Experiment:
+def integrate_tdma_implicit_scheme(config: Selkov1DConfiguration, method_config: TdmaParameters1D, eps: float = 1e-7) -> Experiment:
     """
     Args:
         dump_path: if not None, data will be stored on disk
@@ -36,7 +36,8 @@ def integrate_tdma_implicit_scheme(config: Selkov1DConfiguration, method_config:
                                                                u_init, v_init,
                                                                method_config['save_timeline'],
                                                                method_config['timeline_save_step_delta'],
-                                                               method_config['min_t'], method_config['noise_amp'])
+                                                               method_config['min_t'], method_config['noise_amp'],
+                                                               eps=eps)
     if u is None:
         raise ArithmeticError('Selkov1d evaluation failed')
     res = Experiment()
@@ -58,7 +59,8 @@ def __get_right_vec_v_implicit__(u: np.array, v: np.array, w: float, t: float) -
 @njit(fastmath=True, parallel=True)
 def __integrate_tdma_implicit__(dt: float, dx: float, steps: int, n: float, w: float, D_u: float, D_v: float,
                                 init_u: np.array, init_v: np.array, save_timeline: bool = False,
-                                timeline_save_step: int = 10_000, min_t: int = None, noise_amp: float = None):
+                                timeline_save_step: int = 10_000, min_t: int = None, noise_amp: float = None,
+                                eps: float = 1e-7):
     """
     :returns: Tuple
         - u - is final U state;
@@ -92,7 +94,7 @@ def __integrate_tdma_implicit__(dt: float, dx: float, steps: int, n: float, w: f
         if i % 5000 == 4999:
             if not np.isfinite(u_new).all():
                 return None, None, None, None
-            if (min_t is None or i * dt > min_t) and np.linalg.norm(u - u_new) < 1e-7:
+            if (min_t is None or i * dt > min_t) and np.linalg.norm(u - u_new) < eps:
                 break
             if np.linalg.norm(u) < 0.000000001:
                 break
