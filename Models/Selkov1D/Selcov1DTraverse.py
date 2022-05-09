@@ -21,33 +21,27 @@ def __make_new_init_data__(ex: Experiment) -> Tuple[np.array, np.array]:
     return ex.end_values.values()
 
 
-def traverse(conf_base: Selkov1DConfiguration, params: TdmaParameters1D, du_to_traverse: List[int],
-             init_peak_and_dus: Iterable[Tuple[float, float]], verbose: bool = False) -> Iterable[Experiment]:
+def traverse(conf_base: Selkov1DConfiguration, params: TdmaParameters1D, du_to_traverse: List[float],
+             init_and_dus: Iterable[Tuple[float, float]], verbose: bool = False) -> Iterable[Experiment]:
     du_to_traverse = sorted(du_to_traverse)
     selkov_conf_base = conf_base.copy()
-    for p, start_du in init_peak_and_dus:
-        if verbose:
-            print(f'p {p} start_du {start_du}')
+    for init_data, start_du in init_and_dus:
+        res = []
+
         selkov_conf_base.parameters['Du'] = start_du
-        u, v = selkov_conf_base.get_stale_homogenous_solution()
         assert params['x_right'] is not None
         assert params['x_left'] is not None
-        size = int((params['x_right'] - params['x_left']) / params['dx']) + 1
-        init_data = (get_cos(p, size, u, .2), get_cos(p, size, v, .2))
         dus_to_forward_traverse = [d for d in du_to_traverse if d > start_du]
-        if verbose:
-            print('Forward dus', dus_to_forward_traverse)
         confs_to_forward_traverse = [selkov_conf_base.copy({'Du': du}) for du in dus_to_forward_traverse]
 
         dus_to_backward_traverse = [d for d in du_to_traverse if d <= start_du][::-1]
-        if verbose:
-            print('Backward dus', dus_to_backward_traverse)
         confs_to_backward_traverse = [selkov_conf_base.copy({'Du': du}) for du in dus_to_backward_traverse]
 
         for e in traverse_recursive(__traverse_single__, [(c, params.copy()) for c in confs_to_forward_traverse],
                                     __make_new_init_data__, init_data, verbose=verbose):
-            yield e, p
+            res.append(e)
 
         for e in traverse_recursive(__traverse_single__, [(c, params.copy()) for c in confs_to_backward_traverse],
                                     __make_new_init_data__, init_data, verbose=verbose):
-            yield e, p
+            res.append(e)
+        yield res

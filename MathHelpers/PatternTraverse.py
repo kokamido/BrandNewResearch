@@ -7,11 +7,6 @@ CONFIG_TYPE = TypeVar('CONFIG_TYPE')
 INIT_DATA_TYPE = TypeVar('INIT_DATA_TYPE')
 
 
-def traverse_pattern(traverse: Callable[[CONFIG_TYPE, INIT_DATA_TYPE], Experiment], config: CONFIG_TYPE,
-                     init_data: INIT_DATA_TYPE) -> Experiment:
-    return traverse(config, init_data)
-
-
 def traverse_recursive(traverse: Callable[[CONFIG_TYPE, INIT_DATA_TYPE], Experiment], configs: List[CONFIG_TYPE],
                        make_new_init_data: Callable[[Experiment], INIT_DATA_TYPE],
                        init_data: INIT_DATA_TYPE, verbose: bool = False) -> Iterable[Experiment]:

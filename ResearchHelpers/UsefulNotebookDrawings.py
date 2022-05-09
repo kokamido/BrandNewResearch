@@ -54,13 +54,14 @@ def get_and_draw_patterns(data: MultipleExperimentContainer, var_name: str, key_
 
 def draw_w_k_dynamics(data: MultipleExperimentContainer, var_name: str, key_field: str,
                       k_to_check: tp.Union[float, tp.List[float]], filter_condition: tp.Dict[str, tp.Any] = None,
-                      logscale: bool = False, left_border: float = None, right_border: float = None) \
+                      logscale: bool = False, left_border: float = None, right_border: float = None, legend_loc=4, ax = None,
+                      divide_by: tp.Optional[float] = None) \
         -> None:
     conf_common, confs_uniq = data.get_configs_uniq(params_to_include={key_field}, filter_condition=filter_condition)
     confs_uniq_sorted = sorted(list(confs_uniq), key=lambda x: tuple(x.items()))
     to_draw: tp.Dict[frozendict, tp.Dict[float, float]] = {}
     set_defaults_1D()
-    ax = plt.gca()
+    ax = ax or plt.gca()
     for i, c in enumerate(confs_uniq_sorted):
         exs = data.get_experiments_by_filter(filter_condition=dict(**filter_condition, **conf_common, **c))
         c = c[key_field]
@@ -80,15 +81,17 @@ def draw_w_k_dynamics(data: MultipleExperimentContainer, var_name: str, key_fiel
         ys = []
         for primary_key in sorted(list(to_draw)):
             ys.append(to_draw[primary_key][k])
-        ax.plot(xs, ys, c=COLORS[k], label=f'$W_{{{k}}}$', lw=2)
+            if divide_by:
+                ys[-1] /= to_draw[primary_key][divide_by]
+        ax.plot(xs, ys, c=COLORS[k], label= f'$W_{{{k}}}/W_{{{divide_by}}}$' if divide_by is not None else f'$W_{{{k}}}$', lw=4)
     ax.set_xticks(xs)
-    ax.set_xticklabels(sorted(list(to_draw.keys())), rotation=45)
+    ax.set_xticklabels([round(x,5) for x in sorted(list(to_draw.keys()))], rotation=45)
     ax.set_ylabel('$W_k$')
     ax.set_xlabel(key_field)
     if logscale:
         ax.set_yscale('log')
     ax.set_title(str(filter_condition).replace("'", '')[1:-1])
-    plt.legend()
+    plt.legend(loc=legend_loc)
     plt.show()
 
 
@@ -98,7 +101,7 @@ def draw_quadreega(ex: Experiment, ks: tp.List[float], var_name: str, left_borde
     set_defaults_1D()
     left_border_t, right_border_t = suggest_time_borders(ex, left_border_t, right_border_t)
     fig, axes = plt.subplots(2, 2, figsize=(28, 14))
-    draw_transient(ex, left_border_t, right_border_t, ax=axes[0][0],
+    draw_transient(ex, var_name,left_border_t, right_border_t, ax=axes[0][0],
                    cbar_kws={'use_gridspec': False, 'location': 'top'})
     draw_few_Fouriers(ex, ks, left_border_t, right_border_t, ax=axes[0][1], top_n=top_n_coeffs,
                       coeffs_legend_loc=coeffs_legend_loc)

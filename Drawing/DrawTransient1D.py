@@ -141,7 +141,7 @@ def draw_timeline_deltas(e: Experiment, left_border=None, right_border=None) -> 
     plt.show()
 
 
-def draw_transient(e: Experiment, left_border: float = None, right_border: float = None,
+def draw_transient(e: Experiment, var_name='u', left_border: float = None, right_border: float = None,
                    xticks: Union[List[float], np.ndarray] = None,
                    yticks: Union[List[float], np.ndarray] = None,
                    draw_u_only: bool = True, cmap: str = 'nipy_spectral_r', ax: axes = None,
@@ -170,12 +170,13 @@ def draw_transient(e: Experiment, left_border: float = None, right_border: float
         ytickslabels = yticks
 
     ax = __draw_transient__(
-        e.timelines['u'].T[::-1, left_border:right_border], dt, dx, '$t$', '$x$', cmap, xticklabels, ytickslabels, ax,
+        e.timelines[var_name].T[::-1, left_border:right_border], dt, dx, '$t$', '$x$', cmap, xticklabels, ytickslabels, ax,
         cbar_kws)
     if not draw_u_only:
         ax = __draw_transient__(
-            e.timelines['v'].T[::-1, left_border:right_border], dt, dx, '$t$', '$V$', cmap, xticklabels, ytickslabels,
+            e.timelines[var_name].T[::-1, left_border:right_border], dt, dx, '$t$', '$V$', cmap, xticklabels, ytickslabels,
             ax, cbar_kws)
+    ax.set_ylabel(var_name, rotation=0)
     return ax
 
 
