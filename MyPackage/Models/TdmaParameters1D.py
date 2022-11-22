@@ -1,12 +1,10 @@
 from typing import Dict, Any
-
-from nptyping import ndarray
-
+import numpy as np
 from MyPackage.Models.ConfigBase import ConfigBase
 
 
 class TdmaParameters1D(ConfigBase):
-    def __init__(self, u_init: ndarray, v_init: ndarray, dx: float, dt: float, t_max: float,
+    def __init__(self, u_init: np.array, v_init: np.array, dx: float, dt: float, t_max: float,
                  x_left: float, x_right: float,  save_timeline: bool = False,
                  timeline_save_step_delta: int = 100, min_t: int = None, noise_amp: float = 0.0, seed: int = None):
         assert u_init.shape == v_init.shape
@@ -24,7 +22,7 @@ class TdmaParameters1D(ConfigBase):
 
 
     def copy(self, modification=None):
-        res = from_params_dict(self.parameters)
+        res = self.from_params_dict(self.parameters)
         if modification is not None:
             for key in modification:
                 res[key] = modification[key]
@@ -34,10 +32,10 @@ class TdmaParameters1D(ConfigBase):
         assert self.parameters['timeline_save_step_delta']
         assert self.parameters['dt']
         return self.parameters['timeline_save_step_delta'] * self.parameters['dt']
-
-
-def from_params_dict(params: Dict[str, Any]) -> TdmaParameters1D:
-    return TdmaParameters1D(params['u_init'], params['v_init'], params['dx'],
-                            params['dt'], params['t_max'], params.get('x_left', None), params.get('x_right', None),
-                            params.get('save_timeline', True), params.get('timeline_save_step_delta', 100),
-                            params.get('min_t', None), params.get('noise_amp', 0.0), params.get('seed', None))
+    
+    @staticmethod
+    def from_params_dict(params: Dict[str, Any]):
+        return TdmaParameters1D(params['u_init'], params['v_init'], params['dx'],
+                                params['dt'], params['t_max'], params.get('x_left', None), params.get('x_right', None),
+                                params.get('save_timeline', True), params.get('timeline_save_step_delta', 100),
+                                params.get('min_t', None), params.get('noise_amp', 0.0), params.get('seed', None))

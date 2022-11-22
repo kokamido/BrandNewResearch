@@ -45,17 +45,17 @@ def integrate_tdma_implicit_scheme(config: Higgins1DConfiguration, settings: Tdm
     return res
 
 
-@njit(fastmath=True, parallel=True)
+@njit(fastmath=True)
 def __get_right_vec_u_implicit(u: np.array, v: np.array, t: float) -> np.array:
     return u + (1 - u * v) * t
 
 
-@njit(fastmath=True, parallel=True)
+@njit(fastmath=True)
 def __get_right_vec_v_implicit(u: np.array, v: np.array, p: float, q: float, t: float) -> np.array:
     return v + t * p * v * (u - (1 + q) / (q + v))
 
 
-@njit(nopython=True, parallel=True)
+@njit(nopython=True)
 def __integrate_tdma_implicit(dt: float, dx: float, steps: int, p: float, q: float, D_u: float, D_v: float,
                               init_u: np.array, init_v: np.array, save_timeline: bool = False,
                               timeline_save_step: int = 10_000, min_t: int = None, noise_amp: float = None):

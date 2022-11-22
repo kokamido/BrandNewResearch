@@ -1,14 +1,14 @@
 from typing import Dict, Tuple
 
 import numpy as np
-from nptyping import NDArray
+
 from numpy.linalg import norm
 
 from MyPackage.DataAnalyzers.PeaksAnalyzer import _calc_peaks_by_Fourier
 from MyPackage.DataContainers.Experiment import Experiment
 
 
-def calc_deltas_for_timeline_1D(e: Experiment) -> Dict[str, NDArray]:
+def calc_deltas_for_timeline_1D(e: Experiment) -> Dict[str, np.array]:
     assert e.timelines
     res = {}
     for k in e.timelines:
@@ -20,7 +20,7 @@ def calc_deltas_for_timeline_1D(e: Experiment) -> Dict[str, NDArray]:
     return res
 
 
-def calc_min_and_max_dynamic(transient: NDArray) -> Tuple[NDArray, NDArray]:
+def calc_min_and_max_dynamic(transient: np.array) -> Tuple[np.array, np.array]:
     """
     Возвращает временные ряды, содержащие минимумы и максимумы паттерна в каждый момент времени
     """

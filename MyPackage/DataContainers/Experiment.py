@@ -3,7 +3,7 @@ import re
 from typing import TypeVar, Dict, Any
 
 import numpy as np
-from nptyping import NDArray
+
 from numpy import ndarray, array
 
 from MyPackage.Models.ConfigBase import ConfigBase
@@ -16,7 +16,7 @@ class Experiment:
     NecessaryFiles = ['end_values', 'init_values', 'method_parameters', 'model_config']
 
     def fill(self, model_config: ConfigBase, method_parameters: ConfigBase,
-             init_values: Dict[str, NDArray], end_values: Dict[str, NDArray],
+             init_values: Dict[str, np.array], end_values: Dict[str, np.array],
              timelines: Dict[str, ndarray] = None) -> Experiment:
         assert model_config
         assert method_parameters

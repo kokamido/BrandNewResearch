@@ -2,9 +2,10 @@ import datetime
 import json
 from os import path, walk
 from typing import Dict, Any, Callable, List, Union
+from tqdm import tqdm
 
 import numpy as np
-from nptyping import NDArray
+
 from numpy import ndarray
 
 
@@ -26,7 +27,7 @@ def myconverter(obj):
         return obj.__str__()
 
 
-def to_json_np_aware(data: Dict[str, Union[NDArray, ndarray]]) -> str:
+def to_json_np_aware(data: Dict[str, Union[np.array, ndarray]]) -> str:
     if not data:
         return ''
     return json.dumps(data, default=myconverter, indent=2)
@@ -41,6 +42,6 @@ def load_json(path_to_file: str) -> Dict[str, Any]:
 def do_with_all_subfolders(parent_folder: str, function: Callable[[str], Any]) -> List[Any]:
     assert path.exists(parent_folder)
     res = []
-    for directory in list(walk(parent_folder))[0][1]:
+    for directory in tqdm(list(walk(parent_folder))[0][1], desc=f'Processing {parent_folder}'):
         res.append(function(path.join(parent_folder, directory)))
     return res

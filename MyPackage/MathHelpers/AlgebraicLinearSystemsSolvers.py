@@ -1,11 +1,11 @@
 import numpy as np
-from nptyping import NDArray
+
 from numba import njit
 
 
 @njit(fastmath=True)
-def tdma(ac: NDArray[np.float64], bc: NDArray[np.float64], cc: NDArray[np.float64], dc: NDArray[np.float64]) \
-        -> NDArray[np.float64]:
+def tdma(ac: np.array, bc: np.array, cc: np.array, dc: np.array) \
+        -> np.array:
     """Solution of a linear system of algebraic equations with a
         tri-diagonal matrix of coefficients using the Thomas-algorithm.
 
