@@ -39,9 +39,14 @@ def load_json(path_to_file: str) -> Dict[str, Any]:
         return json.load(inp)
 
 
-def do_with_all_subfolders(parent_folder: str, function: Callable[[str], Any]) -> List[Any]:
+def do_with_all_subfolders(parent_folder: str, action: Callable[[str], Any], filter: Callable[[str, str, str], bool]) -> List[Any]:
     assert path.exists(parent_folder)
     res = []
-    for directory in tqdm(list(walk(parent_folder))[0][1], desc=f'Processing {parent_folder}'):
-        res.append(function(path.join(parent_folder, directory)))
+    folders = walk(parent_folder)
+    with tqdm() as bar: 
+        for directory, inner_dirs, inner_files in folders:
+            if filter(directory, inner_dirs, inner_files):
+                bar.set_description(f'Processing {directory}')
+                res.append(action(path.join(parent_folder, directory)))
+                bar.update()
     return res

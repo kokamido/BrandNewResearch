@@ -94,14 +94,15 @@ def calc_few_Fourier_coeffs_for_experiment(e: Experiment, ks, var_to_calc: str, 
     return res, ts
 
 
-def calc_peaks_by_Fourier(ex: Experiment, var: str, max_peaks_count: float = 10.0) -> PeakPatternType:
+def calc_peaks_by_Fourier(ex: Experiment, var: str, max_peaks_count: float = 10.0, min_amplitude=0.1) -> PeakPatternType:
+    if (max(ex.end_values[var]) - min(ex.end_values[var])) < min_amplitude:
+        return None
     return _calc_peaks_by_Fourier(ex.end_values[var], ex.method_parameters['dx'], max_peaks_count)
 
 
 def _calc_peaks_by_Fourier(points: np.ndarray, dx: float, max_peaks_count: float = 10.0) -> PeakPatternType:
     """Returns picks count in cos-like stricture
     Format {picks: float, direction: up/down}
-    Returns 0 picks if amplitude in array < min_amplitude
     """
     coeffs_to_check = np.linspace(.5, max_peaks_count, int(max_peaks_count * 2))
     coeffs = np.apply_along_axis(lambda c: calc_Fourier_coeff_for_pattern(

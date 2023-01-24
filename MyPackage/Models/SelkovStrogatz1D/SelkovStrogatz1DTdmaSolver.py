@@ -63,16 +63,16 @@ def integrate_tdma_implicit_scheme(
 
 @njit(fastmath=True)
 def __get_right_vec_y_implicit__(
-    x: np.array, y: np.array, a: float, b: float, t: float
+    x: np.array, y: np.array, a: float, b: float, d_t: float
 ) -> np.array:
-    return y + (b - a * y - x**2 * y) * t
+    return y + (b - a * y - x**2 * y) * d_t
 
 
 @njit(fastmath=True)
 def __get_right_vec_x_implicit__(
-    x: np.array, y: np.array, a: float, t: float
+    x: np.array, y: np.array, a: float, d_t: float
 ) -> np.array:
-    return x + (-x + a * y + x**2 * y) * t
+    return x + (-x + a * y + x**2 * y) * d_t
 
 
 @njit(fastmath=True)
