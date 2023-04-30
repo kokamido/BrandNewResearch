@@ -1,9 +1,9 @@
 import sys
 sys.path.append('/home/alexander/Desktop/univer/BrandNewResearch')
-from MyPackage.Models.SelkovStrogatz1D.SelkovStrogatz1DConfiguration import (
+from MyPackage.Models.SelkovStrogatz.SelkovStrogatz1DConfiguration import (
     SelkovStrogatz1DConfiguration,
 )
-from MyPackage.Models.SelkovStrogatz1D.SelkovStrogatz1DTdmaSolver import (
+from MyPackage.Models.SelkovStrogatz.SelkovStrogatz1DTdmaSolver import (
     integrate_tdma_implicit_scheme,
     TdmaParameters1D,
 )

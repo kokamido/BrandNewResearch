@@ -12,7 +12,7 @@ def draw_timeline_cross_section(ex: Experiment, value_to_draw: str, t: float, co
     return draw_pattern_from_array(ex.timelines[value_to_draw][int(t / dt)], dx, color, title, value_to_draw, ax)
 
 
-def draw_pattern(ex: Experiment, var_name: str, color: tp.Any = 'b', title: str = None, label: str = None,
+def draw_pattern(ex: Experiment, var_name: str, color: tp.Any = None, title: str = None, label: str = None,
                  ax: plt.axes = None, linestyle: str = '-') -> plt.axes:
     ax = draw_pattern_from_array(ex.end_values[var_name], ex.method_parameters['dx'], color, title, label, ax, linestyle)
     ax.set_ylabel(var_name, rotation=0)
@@ -26,6 +26,9 @@ def draw_pattern_from_array(data: np.array, dx: float, color: str = 'b', title: 
     if title is not None:
         ax.set_title(title)
     ax.grid(True)
-    ax.plot(np.arange(data.size) * dx, data, c=color, label=label, lw=5, ls = linestyle)
+    if color:
+        ax.plot(np.arange(data.size) * dx, data, c=color, label=label, lw=5, ls = linestyle)
+    else:
+        ax.plot(np.arange(data.size) * dx, data, label=label, lw=5, ls = linestyle)
     ax.set_xlabel('$X$')
     return ax

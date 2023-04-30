@@ -76,6 +76,12 @@ def calc_Fourier_coeff_for_pattern(points: np.ndarray, dx: float, coeff: float) 
         cos_mul *= -1
     return simpson_nb(points * cos_mul, xs[1] - xs[0])
 
+def calc_multiple_Fourier_coeffs(points: np.ndarray, dx: float, coeffs:np.ndarray):
+    res = {}
+    for c in coeffs:
+        res[c] = calc_Fourier_coeff_for_pattern(points, dx, c)
+    return res
+
 
 def calc_Fourier_coeff_for_transient(trans: np.ndarray, dx: float, coeff: float) -> np.ndarray:
     return np.apply_along_axis(lambda x: calc_Fourier_coeff_for_pattern(x, dx, coeff), 1, trans)
